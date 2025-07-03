@@ -2787,7 +2787,14 @@ function collectWardStockMedicationsData() {
 async function submitPatientOrder() {
     try {
         // Collect form data
-        const wardId = document.getElementById('ward-name').value;
+        // Get ward ID and convert to integer for database compatibility
+        const wardIdRaw = document.getElementById('ward-name').value;
+        const wardId = parseInt(wardIdRaw, 10) || 0; // Convert to integer or use 0 if not a valid number
+        
+        if (wardId <= 0) {
+            alert('Please select a valid ward.');
+            return;
+        }
         const patientName = document.getElementById('patient-name').value;
         const patientDOB = document.getElementById('patient-dob').value;
         const patientNHS = document.getElementById('patient-nhs').value;
@@ -2956,7 +2963,14 @@ async function submitPatientOrderFinal(orderData) {
 async function submitWardStockOrder() {
     try {
         // Collect form data
-        const wardId = document.getElementById('ws-ward-name').value;
+        // Get ward ID and convert to integer for database compatibility
+        const wardIdRaw = document.getElementById('ws-ward-name').value;
+        const wardId = parseInt(wardIdRaw, 10) || 0; // Convert to integer or use 0 if not a valid number
+        
+        if (wardId <= 0) {
+            alert('Please select a valid ward.');
+            return;
+        }
         const requesterName = document.getElementById('ws-requester-name').value;
         const requesterRole = document.getElementById('ws-requester-role').value;
         

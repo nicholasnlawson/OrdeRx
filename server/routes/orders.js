@@ -162,7 +162,18 @@ router.post('/', hasRole(['ordering']), async (req, res) => {
   console.log('POST /api/orders called with body:', JSON.stringify(req.body, null, 2));
   console.log('Request headers:', JSON.stringify(req.headers, null, 2));
   try {
-    const { id, type, wardId, patient, medications, requester, notes, is_duplicate } = req.body;
+    // Extract all needed data, but handle wardId separately to ensure it's an integer
+    const { id, type, patient, medications, requester, notes, is_duplicate } = req.body;
+    
+    // Ensure wardId is always treated as an integer
+    const wardId = parseInt(req.body.wardId, 10);
+    
+    if (!wardId || isNaN(wardId) || wardId <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid ward ID. Must be a positive integer value.'
+      });
+    }
     
     // Validate required fields
     if (!type || !wardId || !medications || !requester) {
