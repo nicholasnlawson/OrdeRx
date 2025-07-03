@@ -51,7 +51,8 @@ function initializeDatabase() {
         'migrations/add-cancellation-fields.sql',
         'migrations/add-admin-role-types.sql',
         'migrations/remove-admin-legacy-role.sql',
-        'migrations/add-dispensaries-table.sql'
+        'migrations/add-dispensaries-table.sql',
+        'migrations/fix-admin-role.sql'
     ];
     
     const migrations = migrationFiles.map(file => {
