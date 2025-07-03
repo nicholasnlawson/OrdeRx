@@ -21,6 +21,7 @@ server/data/
 # Logs
 logs/
 *.log
+server/logs/
 
 # Build directories
 dist/
