@@ -3011,8 +3011,9 @@ async function submitWardStockOrder() {
         // We use the ward ID as a proxy for "patient" in the recent check API
         try {
             // Format the ward ID with 'ward-' prefix to signal this is a ward stock check
-            // This allows the backend to distinguish between ward stock and patient orders
-            const formattedWardId = wardId.startsWith('ward-') ? wardId : `ward-${wardId}`;
+            // Handle wardId as integer - convert to string for prefix operations
+            const wardIdString = String(wardId);
+            const formattedWardId = wardIdString.startsWith('ward-') ? wardIdString : `ward-${wardIdString}`;
             
             const patientData = {
                 // Use formatted ward ID as the hospital number to check for ward-specific recent orders
