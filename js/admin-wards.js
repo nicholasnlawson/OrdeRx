@@ -7,9 +7,9 @@
 document.addEventListener('DOMContentLoaded', () => {
   // Check if user is authenticated and has full admin access (super-admin or admin)
   if (!AuthUtils.isAuthenticated() || !AuthUtils.hasFullAdminAccess()) {
-    // If user is logged in but doesn't have full admin access, redirect to dashboard
+    // If user is logged in but doesn't have full admin access, redirect to home page
     if (AuthUtils.isAuthenticated()) {
-      window.location.href = '/dashboard.html';
+      window.location.href = '/home.html';
     } else {
       window.location.href = '/login.html';
     }
