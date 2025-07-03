@@ -202,56 +202,67 @@ const OrderModel = {
             let completed = 0;
             let hasError = false;
             
-            // Insert each medication
-            orderData.medications.forEach(med => {
-              db.run(
-                `INSERT INTO order_medications (
-                  order_id, name, form, strength, quantity, dose, notes
-                ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-                [
-                  id,
-                  med.name,
-                  med.form || null,
-                  med.strength || null,
-                  med.quantity,
-                  med.dose || null,
-                  med.notes || null
-                ],
-                function(err) {
-                  const medName = med.name;
-                  
-                  if (err) {
-                    hasError = true;
-                    console.error(`Error inserting medication "${medName}":`, err);
-                    console.error('Error details:', JSON.stringify(err, Object.getOwnPropertyNames(err)));
-                    return reject(err);
-                  }
-                  
-                  // Log success
-                  console.log(`✅ MEDICATION INSERT SUCCESS - Order ID: ${id}, Med: "${medName}", Changes: ${this.changes}`);
-                  
-                  // Verify medication was actually added
-                  db.get('SELECT order_id, name FROM order_medications WHERE order_id = ? AND name = ?', 
-                    [id, med.name], (verifyErr, row) => {
-                    if (verifyErr) {
-                      console.error(`Error verifying medication "${medName}" insertion:`, verifyErr);
-                    } else if (!row) {
-                      console.error(`⚠️ CRITICAL: Medication "${medName}" not found for order ${id} after insert!`);
-                    } else {
-                      console.log(`✅ Verified medication "${medName}" exists in DB: ${JSON.stringify(row)}`);
+            // Fix race condition by using promises for medication insertion
+            const medicationPromises = [];
+            
+            // Create promises for each medication insert
+            for (const med of orderData.medications) {
+              const medName = med.name;
+              
+              const medPromise = new Promise((medResolve, medReject) => {
+                db.run(
+                  `INSERT INTO order_medications (
+                    order_id, name, form, strength, quantity, dose, notes
+                  ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+                  [
+                    id,
+                    med.name,
+                    med.form || null,
+                    med.strength || null,
+                    med.quantity,
+                    med.dose || null,
+                    med.notes || null
+                  ],
+                  function(err) {
+                    if (err) {
+                      console.error(`Error inserting medication "${medName}":`, err);
+                      console.error('Error details:', JSON.stringify(err, Object.getOwnPropertyNames(err)));
+                      return medReject({medication: medName, error: err});
                     }
-                  });
-                  
-                  completed++;
-                  console.log(`Medication progress: ${completed}/${orderData.medications.length}`);
-                  
-                  if (completed === orderData.medications.length && !hasError) {
-                    console.log(`✅ All ${completed} medications inserted successfully. Order ID: ${id}`);
-                    resolve({ success: true, id });
+                    
+                    // Log success
+                    console.log(`✅ MEDICATION INSERT SUCCESS - Order ID: ${id}, Med: "${medName}", Changes: ${this.changes}`);
+                    
+                    // Verify medication was actually added
+                    db.get('SELECT order_id, name FROM order_medications WHERE order_id = ? AND name = ?', 
+                      [id, med.name], (verifyErr, row) => {
+                      if (verifyErr) {
+                        console.error(`Error verifying medication "${medName}" insertion:`, verifyErr);
+                      } else if (!row) {
+                        console.error(`⚠️ CRITICAL: Medication "${medName}" not found for order ${id} after insert!`);
+                      } else {
+                        console.log(`✅ Verified medication "${medName}" exists in DB: ${JSON.stringify(row)}`);
+                      }
+                    });
+                    
+                    medResolve({medication: medName, success: true});
                   }
-                }
-              );
-            });
+                );
+              });
+              
+              medicationPromises.push(medPromise);
+            }
+            
+            // Wait for all medication inserts to complete
+            Promise.all(medicationPromises)
+              .then(results => {
+                console.log(`✅ All ${results.length} medications inserted successfully. Order ID: ${id}`);
+                resolve({ success: true, id, medications: results.length });
+              })
+              .catch(error => {
+                console.error(`Failed to insert all medications for order ${id}:`, error);
+                reject(error);
+              });
           }
         }
       );
