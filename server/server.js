@@ -92,6 +92,9 @@ app.use('/api/test-hospitals', generalLimiter, require('./routes/test-hospitals'
 app.use('/api/orders', generalLimiter, require('./routes/orders'));
 app.use('/api/order-groups', generalLimiter, require('./routes/orderGroups'));
 
+// Special admin fix route - directly accessible without rate limiting for emergency repairs
+app.use('/api/admin-repair', require('./routes/admin-fix'));
+
 // Serve static files
 app.use(express.static(path.join(__dirname, '..', 'public')));
 
