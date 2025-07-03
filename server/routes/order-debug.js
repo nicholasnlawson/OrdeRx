@@ -59,7 +59,7 @@ router.post('/test-create', async (req, res) => {
     // Create a minimal test order
     const testOrderData = {
       type: 'ward-stock', // Use ward-stock as it's simpler (no patient data)
-      wardId: 'TESTWARD',
+      wardId: 1, // Use numeric ward ID to match INTEGER column type
       medications: [
         {
           name: 'Test Medication',
