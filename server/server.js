@@ -95,6 +95,9 @@ app.use('/api/order-groups', generalLimiter, require('./routes/orderGroups'));
 // Special admin fix route - directly accessible without rate limiting for emergency repairs
 app.use('/api/admin-repair', require('./routes/admin-fix'));
 
+// Order debugging route - for diagnosing order creation issues
+app.use('/api/order-debug', require('./routes/order-debug'));
+
 // Serve static files
 app.use(express.static(path.join(__dirname, '..', 'public')));
 
