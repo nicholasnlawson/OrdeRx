@@ -5,7 +5,7 @@
 
 const express = require('express');
 const router = express.Router();
-const db = require('../db/db-connection');
+const { db } = require('../db/init');
 
 /**
  * Fix admin roles directly
