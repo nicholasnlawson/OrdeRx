@@ -28,6 +28,9 @@ dist/
 build/
 out/
 
+# Utility scripts
+generate-secret.js
+
 # IDE and editor files
 .idea/
 .vscode/
