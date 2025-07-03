@@ -5,8 +5,10 @@
 
 class ApiClient {
   constructor() {
-    // API base URL - change this to match your server configuration
-    this.baseUrl = 'http://localhost:3000/api';
+    // API base URL - dynamically determined based on environment
+    this.baseUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+      ? 'http://localhost:3000/api'
+      : '/api';
     this.token = localStorage.getItem('token');
   }
 

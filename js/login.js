@@ -5,8 +5,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const passwordField = document.getElementById('password');
   const errorMessage = document.getElementById('error-message');
 
-  // API base URL - change this to match your server configuration
-  const API_BASE_URL = 'http://localhost:10000/api';
+  // Get API base URL from config
+  const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:10000/api'
+    : '/api';
 
   // Toggle password visibility
   togglePasswordButton.addEventListener('click', () => {
