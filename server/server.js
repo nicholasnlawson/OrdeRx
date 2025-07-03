@@ -21,13 +21,21 @@ const PORT = process.env.PORT || 3000;
 app.use(helmet());
 
 // Configure Content Security Policy
+const allowedConnectSrc = ["'self'"];
+if (process.env.RENDER_EXTERNAL_URL) {
+  allowedConnectSrc.push(process.env.RENDER_EXTERNAL_URL);
+} else {
+  // Add local development URLs
+  allowedConnectSrc.push('http://localhost:3001', 'http://localhost:3000', 'http://localhost:10000');
+}
+
 app.use(helmet.contentSecurityPolicy({
   directives: {
     defaultSrc: ["'self'"],
     scriptSrc: ["'self'", "'unsafe-inline'"], // Required for some functionality
     styleSrc: ["'self'", "'unsafe-inline'"],
     imgSrc: ["'self'", 'data:'],
-    connectSrc: ["'self'", 'localhost:3001', 'http://localhost:3001', 'localhost:3000', 'http://localhost:3000', 'localhost:10000', 'http://localhost:10000'],
+    connectSrc: allowedConnectSrc,
     fontSrc: ["'self'"],
     objectSrc: ["'none'"],
     mediaSrc: ["'self'"],

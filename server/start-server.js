@@ -7,22 +7,10 @@ const dotenv = require('dotenv');
 const path = require('path');
 const fs = require('fs');
 
-// Ensure .env file exists
-const envPath = path.join(__dirname, '.env');
-if (!fs.existsSync(envPath)) {
-  console.error('.env file not found. Creating default .env file...');
-  
-  const defaultEnv = 
-`JWT_SECRET=your_secure_jwt_secret_key_change_this_in_production
-TOKEN_EXPIRY=24h
-PORT=3000`;
-
-  fs.writeFileSync(envPath, defaultEnv);
-  console.log('Default .env file created');
+// Load environment variables from .env file in development
+if (process.env.NODE_ENV !== 'production') {
+    dotenv.config();
 }
-
-// Load environment variables
-dotenv.config();
 
 // Initialize database
 console.log('Initializing database...');
