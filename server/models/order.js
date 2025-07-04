@@ -745,7 +745,7 @@ const { modifiedBy = 'system', reason = null, dispensaryId = null, ...fieldsToUp
         }
         
         // Validate required data
-        const { reason, cancelledBy, timestamp } = cancelData;
+        const { reason, cancelledBy, timestamp, dispensaryId = null } = cancelData;
         if (!reason || !cancelledBy) {
           return resolve({ 
             success: false, 
