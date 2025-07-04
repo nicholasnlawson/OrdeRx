@@ -4657,12 +4657,13 @@ async function fetchOrdersByGroup(groupId) {
             if (typeof window.apiClient.get === 'function') {
                 let groupResp;
                 try {
-                    groupResp = await window.apiClient.get(`/order-groups/${groupId}`);
+                    groupResp = await window.apiClient.get(`/api/order-groups/${groupId}`);
                 } catch (err) {
                     console.error(`Error fetching order group ${groupId}:`, err);
                 }
 
-                const orderIds = Array.isArray(groupResp?.orderIds) ? groupResp.orderIds : [];
+                const groupData = groupResp?.group || groupResp; // API may wrap in {success, group}
+                const orderIds = Array.isArray(groupData?.orderIds) ? groupData.orderIds : [];
                 if (orderIds.length === 0) {
                     console.warn(`No orderIds found for group ${groupId}`);
                     return [];
