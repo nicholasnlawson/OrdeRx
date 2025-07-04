@@ -673,25 +673,17 @@ function createOrderGroup(orderIds, groupNumber, notes) {
     console.log('Creating order group with data:', data);
     
     // Use OrderManager or fallback to direct fetch
-    if (window.OrderManager && typeof window.OrderManager.createOrderGroup === 'function') {
-        return window.OrderManager.createOrderGroup(data)
-            .then(result => {
-                handleGroupCreationSuccess(result, orderIds, groupNumber);
-            })
-            .catch(error => {
-                handleGroupCreationError(error);
-            });
-    }
-    
-    // Use apiClient if available (preferred way with built-in auth)
     if (window.apiClient && typeof window.apiClient.post === 'function') {
-        return window.apiClient.post('/order-groups', data)
+        return window.apiClient.post('/api/order-groups', data)
             .then(result => {
                 handleGroupCreationSuccess(result, orderIds, groupNumber);
             })
             .catch(error => {
                 handleGroupCreationError(error);
             });
+    } else {
+        console.error('API client not available. Cannot create order group.');
+        handleGroupCreationError(new Error('API client is not available.'));
     }
     
     // Fallback to direct API call with auth headers
@@ -1227,6 +1219,7 @@ function getFilters() {
     if (wardIdFilter !== 'all' && wardIdFilter !== '') {
         // Convert to number if it's a numeric ID
         const wardIdNumber = parseInt(wardIdFilter, 10);
+        
         filters.wardId = !isNaN(wardIdNumber) ? wardIdNumber : wardIdFilter;
     }
     if (searchText.trim() !== '') {
@@ -4494,63 +4487,12 @@ async function loadOrderGroups(forceRefresh = false) {
             } 
             // Fall back to general GET (try different endpoint formats)
             else if (typeof window.apiClient.get === 'function') {
-                // Try multiple potential endpoints - correct one depends on API implementation
                 try {
-                    // Try the same endpoint pattern used for creation first (without /api prefix)
-                    console.log('Trying /order-groups endpoint (matches creation endpoint)');
-                    response = await window.apiClient.get('/order-groups');
-                    
-                    if (!response || (response.success === false) || 
-                        (Array.isArray(response) && response.length === 0) || 
-                        (response.data && Array.isArray(response.data) && response.data.length === 0) ||
-                        (response.groups && Array.isArray(response.groups) && response.groups.length === 0)) {
-                        
-                        console.log('No results from /api/order-groups, trying /api/order_groups');
-                        response = await window.apiClient.get('/api/order_groups');
-                    }
-                    
-                    // If still no results, try order groups endpoint
-                    if (!response || (response.success === false) || 
-                        (Array.isArray(response) && response.length === 0) || 
-                        (response.data && Array.isArray(response.data) && response.data.length === 0) ||
-                        (response.groups && Array.isArray(response.groups) && response.groups.length === 0)) {
-                        // Try multiple possible API endpoints
-                        const endpointsToTry = [
-                            '/api/order-groups',
-                            '/api/orders/groups',
-                            '/api/ordergroups',
-                            '/order-groups',
-                            '/order_groups',
-                            '/orders/groups'
-                        ];
-                        
-                        let lastError = null;
-                        for (const endpoint of endpointsToTry) {
-                            try {
-                                console.log(`Trying endpoint: ${endpoint}`);
-                                response = await window.apiClient.get(endpoint);
-                                console.log(`Success with endpoint: ${endpoint}`);
-                                break; // Exit loop if successful
-                            } catch (error) {
-                                console.error(`API Error (${endpoint}):`, error);
-                                lastError = error;
-                            }
-                        }
-                        
-                        // If we've tried all endpoints and still have no response
-                        if (!response && lastError) {
-                            console.error('Error fetching from all endpoints, last error:', lastError);
-                            throw new Error('Failed to fetch order groups from any endpoint');
-                        }
-                    }
+                    console.log('Trying /api/order-groups endpoint');
+                    response = await window.apiClient.get('/api/order-groups');
                 } catch (error) {
-                    console.error('Error fetching from primary endpoint:', error);
-                    console.log('Trying fallback endpoint');
-                    try {
-                        response = await window.apiClient.get('/api/orders/groups');
-                    } catch (fallbackError) {
-                        console.error('Error fetching from fallback endpoint:', fallbackError);
-                    }
+                    console.error('Error fetching from /api/order-groups:', error);
+                    throw error; // re-throw the error to be caught by the outer block
                 }
             } 
             // Last resort: direct fetch
