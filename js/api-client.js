@@ -44,7 +44,7 @@ class ApiClient {
    * @returns {Promise} - Promise resolving to response data
    */
   async request(endpoint, method = 'GET', body = null) {
-    const url = `${this.baseUrl}${endpoint}`;
+    const url = endpoint.startsWith('http') ? endpoint : `${this.baseUrl}${endpoint.startsWith('/') ? '' : '/'}${endpoint}`;
     const options = {
       method,
       headers: this.getHeaders()
