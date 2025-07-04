@@ -1365,7 +1365,13 @@ function loadBothOrderTypes(container, filters) {
  * @param {Object} filters - Filter parameters
  * @returns {Promise<Array>} - Promise resolving to array of orders
  */
+function mapStatusForApi(status) {
+    // Ensure we only send statuses accepted by backend
+    return status === 'in-progress' ? 'processing' : status;
+}
+
 function fetchOrdersByStatus(status, filters) {
+    status = mapStatusForApi(status);
     // Build query parameters
     const queryParams = new URLSearchParams();
     
