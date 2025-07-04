@@ -30,66 +30,72 @@ class OrderGroupModel {
             // Use SQLite's run method with a transaction
             db.serialize(() => {
                 logger.info(`Creating group ${groupNumber} with ${orderIds.length} orders`);
-                db.run('BEGIN TRANSACTION');
-                
-                // Insert new group into order_groups table
-                db.run(
-                    'INSERT INTO order_groups (group_number, notes, timestamp) VALUES (?, ?, ?)',
-                    [groupNumber, notes || '', timestamp],
-                    function(err) {
-                        if (err) {
-                            db.run('ROLLBACK');
-                            logger.error(`Error inserting new group ${groupNumber}:`, err);
-                            return reject(err);
-                        }
-                        
-                        const groupId = this.lastID;
-                        
-                        // Create a promise for each order update
-                        const updatePromises = orderIds.map(orderId => {
-                            return new Promise((resolveUpdate, rejectUpdate) => {
-                                db.run(
-                                    'UPDATE orders SET group_id = ? WHERE id = ?',
-                                    [groupId, orderId],
-                                    (err) => {
-                                        if (err) {
-                                            logger.error(`Failed to update order ${orderId} with group_id ${groupId}:`, err);
-                                            return rejectUpdate(err);
-                                        }
-                                        resolveUpdate();
-                                    }
-                                );
-                            });
-                        });
-                        
-                        // Process all updates
-                        Promise.all(updatePromises)
-                            .then(() => {
-                                db.run('COMMIT', (err) => {
-                                    if (err) {
-                                        db.run('ROLLBACK');
-                                        logger.error(`Transaction failed when creating group ${groupNumber} due to commit error:`, err);
-                                        return reject(err);
-                                    }
-                                    
-                                    // Return the created group
-                                    logger.info(`Successfully created group ${groupNumber} with ID ${groupId}`);
-                                    resolve({
-                                        id: groupId,
-                                        groupNumber,
-                                        notes,
-                                        timestamp,
-                                        orderIds
-                                    });
-                                });
-                            })
-                            .catch(error => {
-                                db.run('ROLLBACK');
-                                logger.error(`Transaction failed when creating group ${groupNumber}:`, error);
-                                reject(error);
-                            });
+                db.run('BEGIN TRANSACTION', (beginErr) => {
+                    if (beginErr && !/cannot start a transaction/i.test(beginErr.message)) {
+                        // Any error other than nested transaction is fatal
+                        logger.error('Failed to BEGIN TRANSACTION when creating order group:', beginErr);
+                        return reject(beginErr);
                     }
-                );
+
+                    // Insert new group into order_groups table
+                    db.run(
+                        'INSERT INTO order_groups (group_number, notes, timestamp) VALUES (?, ?, ?)',
+                        [groupNumber, notes || '', timestamp],
+                        (err) => {
+                            if (err) {
+                                db.run('ROLLBACK');
+                                logger.error(`Error inserting new group ${groupNumber}:`, err);
+                                return reject(err);
+                            }
+                            
+                            const groupId = this.lastID;
+                            
+                            // Create a promise for each order update
+                            const updatePromises = orderIds.map(orderId => {
+                                return new Promise((resolveUpdate, rejectUpdate) => {
+                                    db.run(
+                                        'UPDATE orders SET group_id = ? WHERE id = ?',
+                                        [groupId, orderId],
+                                        (err) => {
+                                            if (err) {
+                                                logger.error(`Failed to update order ${orderId} with group_id ${groupId}:`, err);
+                                                return rejectUpdate(err);
+                                            }
+                                            resolveUpdate();
+                                        }
+                                    );
+                                });
+                            });
+                            
+                            // Process all updates
+                            Promise.all(updatePromises)
+                                .then(() => {
+                                    db.run('COMMIT', (err) => {
+                                        if (err) {
+                                            db.run('ROLLBACK');
+                                            logger.error(`Transaction failed when creating group ${groupNumber} due to commit error:`, err);
+                                            return reject(err);
+                                        }
+                                        
+                                        // Return the created group
+                                        logger.info(`Successfully created group ${groupNumber} with ID ${groupId}`);
+                                        resolve({
+                                            id: groupId,
+                                            groupNumber,
+                                            notes,
+                                            timestamp,
+                                            orderIds
+                                        });
+                                    });
+                                })
+                                .catch((error) => {
+                                    db.run('ROLLBACK');
+                                    logger.error(`Transaction failed when creating group ${groupNumber}:`, error);
+                                    reject(error);
+                                });
+                        }
+                    );
+                });
             });
         });
     }
