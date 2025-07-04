@@ -102,6 +102,9 @@ app.use('/api/admin-repair', require('./routes/admin-fix'));
 // Order debugging route - for diagnosing order creation issues
 app.use('/api/order-debug', require('./routes/order-debug'));
 
+// Database debugging route - for diagnosing database schema issues
+app.use('/api/db-debug', require('./routes/db-debug'));
+
 // Serve static files
 app.use(express.static(path.join(__dirname, '..', 'public')));
 
