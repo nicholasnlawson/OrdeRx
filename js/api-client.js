@@ -681,8 +681,8 @@ if (endpoint.startsWith('http')) {
         timestamp: new Date().toISOString()
       };
       
-      console.log('[API] Making PUT request to /orders/' + orderId + '/cancel', cancelData);
-      const response = await this.request(`/orders/${orderId}/cancel`, 'PUT', cancelData);
+      console.log('[API] Making PUT request to /api/orders/' + orderId + '/cancel', cancelData);
+      const response = await this.request(`/api/orders/${orderId}/cancel`, 'PUT', cancelData);
       console.log('[API] cancelOrder response:', response);
       return response;
     } catch (error) {
