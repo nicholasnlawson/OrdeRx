@@ -102,9 +102,6 @@ app.use('/api/admin-repair', require('./routes/admin-fix'));
 // Order debugging route - for diagnosing order creation issues
 app.use('/api/order-debug', require('./routes/order-debug'));
 
-// Database debugging route - for diagnosing database schema issues
-app.use('/api/db-debug', require('./routes/db-debug'));
-
 // Serve static files
 app.use(express.static(path.join(__dirname, '..', 'public')));
 
@@ -119,6 +116,21 @@ app.get('/api/status', (req, res) => {
 // Redirect root to login page
 app.get('/', (req, res) => {
   res.redirect('/login.html');
+});
+
+// -------------------
+// API 404 handler
+// -------------------
+// This MUST be placed after all route registrations but before the global error handler.
+app.use('/api', (req, res, next) => {
+  // If we reached here, no /api/* route has handled the request.
+  // Provide a consistent JSON 404 instead of the default HTML response.
+  res.status(404).json({
+    success: false,
+    error: 'API endpoint not found',
+    path: req.originalUrl,
+    method: req.method,
+  });
 });
 
 // Add request logging middleware
