@@ -6,8 +6,7 @@
 -- Therefore we recreate the table with the updated constraint, copy data,
 -- then replace the old table.
 
-PRAGMA foreign_keys = off;
-BEGIN TRANSACTION;
+
 
 -- 1. Create a new table with the updated CHECK constraint
 CREATE TABLE IF NOT EXISTS orders_new (
@@ -42,5 +41,4 @@ DROP TABLE orders;
 -- 4. Rename the new table to orders
 ALTER TABLE orders_new RENAME TO orders;
 
-COMMIT;
-PRAGMA foreign_keys = on;
+

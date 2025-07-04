@@ -1,7 +1,7 @@
 -- Migration: Consolidates all logic for creating the order_groups table and linking it to orders.
 -- This single script ensures the schema is created correctly and atomically.
 
-BEGIN TRANSACTION;
+
 
 -- Create the main table for grouping orders
 CREATE TABLE IF NOT EXISTS order_groups (
@@ -21,4 +21,4 @@ ALTER TABLE orders ADD COLUMN group_id INTEGER REFERENCES order_groups(id) ON DE
 CREATE INDEX IF NOT EXISTS idx_orders_group_id ON orders(group_id);
 CREATE INDEX IF NOT EXISTS idx_order_groups_group_number ON order_groups(group_number);
 
-COMMIT;
+
