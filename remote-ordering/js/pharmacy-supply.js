@@ -3812,8 +3812,8 @@ function setupModalButtons(order) {
 
     // Cancel Order button
     if (cancelBtn) {
-        if (order && order.status === 'pending') {
-            console.log('[MODAL] Showing cancel button for pending order');
+        if (order && ['pending','processing'].includes((order.status || '').toLowerCase())) {
+            console.log(`[MODAL] Showing cancel button for ${order.status} order`);
             cancelBtn.classList.remove('hidden');
             cancelBtn.onclick = () => {
                 console.log('[MODAL] Cancel button clicked for order:', order.id);
@@ -3881,8 +3881,10 @@ function setupModalButtons(order) {
     // View Order Group button - show for orders with a groupId OR with in-progress status (since in-progress orders must be in a group)
     if (viewOrderGroupBtn && order) {
         const hasGroupId = order.groupId && order.groupId.trim().length > 0;
-        const isInProgress = order.status === 'in-progress';
-        const hasGroup = hasGroupId || isInProgress;
+        const statusLower = (order.status || '').toLowerCase();
+        const groupStatuses = ['in-progress', 'processing'];
+        const isGroupStatus = groupStatuses.includes(statusLower);
+        const hasGroup = hasGroupId || isGroupStatus;
         console.log(`[MODAL] Order ${order.id} has group:`, hasGroup, 
                     `(groupId: ${order.groupId || 'not set'}, status: ${order.status})`);
         
