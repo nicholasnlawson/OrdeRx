@@ -111,13 +111,36 @@ class OrderGroupModel {
             db.all(
                 'SELECT * FROM order_groups ORDER BY timestamp DESC',
                 [],
-                (err, rows) => {
+                async (err, rows) => {
                     if (err) {
                         logger.error('Error fetching order groups:', err);
                         return reject(err);
                     }
-                    logger.info(`Found ${rows.length} order groups`);
-                    resolve(rows);
+
+                    try {
+                        // For each group, fetch its order IDs
+                        const groupsWithOrders = await Promise.all(rows.map(row => {
+                            return new Promise((resGroup, rejGroup) => {
+                                db.all('SELECT id FROM orders WHERE group_id = ?', [row.id], (err2, orderRows) => {
+                                    if (err2) {
+                                        return rejGroup(err2);
+                                    }
+                                    const orderIds = orderRows.map(r => r.id);
+                                    resGroup({
+                                        ...row,
+                                        orderIds,
+                                        orderCount: orderIds.length
+                                    });
+                                });
+                            });
+                        }));
+
+                        logger.info(`Found ${groupsWithOrders.length} order groups with order IDs`);
+                        resolve(groupsWithOrders);
+                    } catch (innerErr) {
+                        logger.error('Error attaching order IDs to groups:', innerErr);
+                        reject(innerErr);
+                    }
                 }
             );
         });
@@ -157,6 +180,7 @@ class OrderGroupModel {
                             }
                             
                             group.orderIds = orderRows.map(row => row.id);
+                            group.orderCount = group.orderIds.length;
                             resolve(group);
                         }
                     );
