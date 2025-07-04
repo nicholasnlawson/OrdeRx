@@ -30,7 +30,8 @@ class ApiClient {
     }
 
     if (this.token) {
-      headers['Authorization'] = this.token;
+      // Ensure token is prefixed with 'Bearer '
+      headers['Authorization'] = this.token.startsWith('Bearer ') ? this.token : `Bearer ${this.token}`;
     }
 
     return headers;
@@ -44,7 +45,17 @@ class ApiClient {
    * @returns {Promise} - Promise resolving to response data
    */
   async request(endpoint, method = 'GET', body = null) {
-    const url = endpoint.startsWith('http') ? endpoint : `${this.baseUrl}${endpoint.startsWith('/') ? '' : '/'}${endpoint}`;
+    // Build full URL intelligently to avoid double /api prefix
+let url;
+if (endpoint.startsWith('http')) {
+  url = endpoint; // Absolute URL provided
+} else if (endpoint.startsWith('/api/')) {
+  // Endpoint already includes /api prefix – use as-is
+  url = endpoint;
+} else {
+  // Prepend base URL (default '/api')
+  url = `${this.baseUrl}${endpoint.startsWith('/') ? '' : '/'}${endpoint}`;
+}
     const options = {
       method,
       headers: this.getHeaders()
