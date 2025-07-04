@@ -41,7 +41,7 @@ class OrderGroupModel {
                     db.run(
                         'INSERT INTO order_groups (group_number, notes, timestamp) VALUES (?, ?, ?)',
                         [groupNumber, notes || '', timestamp],
-                        (err) => {
+                        function(err) {
                             if (err) {
                                 db.run('ROLLBACK');
                                 logger.error(`Error inserting new group ${groupNumber}:`, err);
