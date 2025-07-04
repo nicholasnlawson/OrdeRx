@@ -6,6 +6,12 @@ const router = express.Router();
 const orderGroupModel = require('../models/orderGroup');
 const authMiddleware = require('../middleware/auth');
 
+// Per-route logging middleware for all order-groups requests
+router.use((req, res, next) => {
+    console.log(`[OrderGroups] ${req.method} ${req.originalUrl} | Auth: ${req.headers['authorization'] ? 'present' : 'missing'}`);
+    next();
+});
+
 /**
  * Create a new order group
  * POST /api/order-groups
@@ -104,6 +110,14 @@ router.delete('/:id', authMiddleware.verifyToken, async (req, res) => {
         console.error(`Error in DELETE /api/order-groups/${groupId}:`, error);
         res.status(500).json({ success: false, error: 'Failed to delete order group', details: error.message });
     }
+});
+
+// ---------------------------
+// Fallback for unhandled routes
+// ---------------------------
+router.all('*', (req, res) => {
+    console.warn(`[OrderGroups] Unmatched route: ${req.method} ${req.originalUrl}`);
+    res.status(404).json({ success: false, error: 'OrderGroups endpoint not found', path: req.originalUrl, method: req.method });
 });
 
 module.exports = router;
