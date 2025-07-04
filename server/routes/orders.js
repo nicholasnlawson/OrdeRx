@@ -346,44 +346,7 @@ router.put('/:id/status', hasRole(['pharmacy', 'ordering']), async (req, res) =>
   }
 });
 
-// ---------------------------------------------
-// PUT /api/orders/:id/cancel - cancel an order
-router.put('/:id/cancel', hasRole(['pharmacy', 'ordering']), async (req, res) => {
-  try {
-    const orderId = req.params.id;
-    const { reason } = req.body;
-    const cancelledBy = req.user ? req.user.username : 'system';
 
-    if (!reason) {
-      return res.status(400).json({
-        success: false,
-        message: 'A reason for cancellation is required'
-      });
-    }
-
-    const result = await OrderModel.cancelOrder(orderId, { reason, cancelledBy });
-
-    if (!result.success) {
-      return res.status(404).json({
-        success: false,
-        message: result.message || 'Order not found or could not be cancelled'
-      });
-    }
-
-    res.json({
-      success: true,
-      message: 'Order cancelled successfully',
-      order: result.order
-    });
-  } catch (error) {
-    console.error('Error cancelling order:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error cancelling order',
-      error: error.message
-    });
-  }
-});
 
 // ---------------------------------------------
 // PUT /api/orders/:id – full/partial order update
@@ -530,6 +493,7 @@ router.delete('/:id', hasRole(['admin']), async (req, res) => {
  * Accessible to admin, pharmacy, and ordering roles
  */
 router.put('/:id/cancel', hasRole(['admin', 'pharmacy', 'ordering']), async (req, res) => {
+  console.log('Cancel route hit for order ID:', req.params.id);
   try {
     const orderId = req.params.id;
     const { reason, cancelledBy, timestamp } = req.body;
