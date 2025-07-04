@@ -44,6 +44,7 @@ function initializeDatabase() {
         'migrations/add-hospital-fields.sql',
         'migrations/rename-telephone-column.sql',
         'migrations/add-orders-table.sql',
+        'migrations/20250626_add_inprogress_unfulfilled_status.sql',
         'migrations/add-order-history.sql',
         'migrations/add-patient-indexes.sql',
         'migrations/add-dose-to-medications.sql',
