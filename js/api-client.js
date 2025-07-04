@@ -70,7 +70,7 @@ class ApiClient {
       }
 
       if (!response.ok) {
-        throw new Error(data.message || 'API request failed');
+        throw new Error(data.message + (data.error ? ` (${data.error})` : ''));
       }
 
       return data;
