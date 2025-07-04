@@ -4,6 +4,8 @@
 const { db } = require('../db/init');
 const { getTimestamp } = require('../utils/timestamp');
 
+const logger = require('../utils/logger');
+
 class OrderGroupModel {
     /**
      * Creates a new order group
@@ -18,6 +20,7 @@ class OrderGroupModel {
         }
         
         if (!groupNumber) {
+            logger.error('Attempted to create group without group number');
             throw new Error('Group number is required');
         }
         
@@ -26,6 +29,7 @@ class OrderGroupModel {
         return new Promise((resolve, reject) => {
             // Use SQLite's run method with a transaction
             db.serialize(() => {
+                logger.info(`Creating group ${groupNumber} with ${orderIds.length} orders`);
                 db.run('BEGIN TRANSACTION');
                 
                 // Insert new group into order_groups table
@@ -35,6 +39,7 @@ class OrderGroupModel {
                     function(err) {
                         if (err) {
                             db.run('ROLLBACK');
+                            logger.error(`Error inserting new group ${groupNumber}:`, err);
                             return reject(err);
                         }
                         
@@ -47,7 +52,10 @@ class OrderGroupModel {
                                     'UPDATE orders SET group_id = ? WHERE id = ?',
                                     [groupId, orderId],
                                     (err) => {
-                                        if (err) return rejectUpdate(err);
+                                        if (err) {
+                                            logger.error(`Failed to update order ${orderId} with group_id ${groupId}:`, err);
+                                            return rejectUpdate(err);
+                                        }
                                         resolveUpdate();
                                     }
                                 );
@@ -60,10 +68,12 @@ class OrderGroupModel {
                                 db.run('COMMIT', (err) => {
                                     if (err) {
                                         db.run('ROLLBACK');
+                                        logger.error(`Transaction failed when creating group ${groupNumber} due to commit error:`, err);
                                         return reject(err);
                                     }
                                     
                                     // Return the created group
+                                    logger.info(`Successfully created group ${groupNumber} with ID ${groupId}`);
                                     resolve({
                                         id: groupId,
                                         groupNumber,
@@ -75,6 +85,7 @@ class OrderGroupModel {
                             })
                             .catch(error => {
                                 db.run('ROLLBACK');
+                                logger.error(`Transaction failed when creating group ${groupNumber}:`, error);
                                 reject(error);
                             });
                     }
@@ -88,12 +99,17 @@ class OrderGroupModel {
      * @returns {Promise<Array>} Array of groups
      */
     async getGroups() {
+        logger.info('Fetching all order groups');
         return new Promise((resolve, reject) => {
             db.all(
                 'SELECT * FROM order_groups ORDER BY timestamp DESC',
                 [],
                 (err, rows) => {
-                    if (err) return reject(err);
+                    if (err) {
+                        logger.error('Error fetching order groups:', err);
+                        return reject(err);
+                    }
+                    logger.info(`Found ${rows.length} order groups`);
                     resolve(rows);
                 }
             );
@@ -106,13 +122,20 @@ class OrderGroupModel {
      * @returns {Promise<object>} Group data
      */
     async getGroupById(groupId) {
+        logger.info(`Fetching group by ID: ${groupId}`);
         return new Promise((resolve, reject) => {
             db.get(
                 'SELECT * FROM order_groups WHERE id = ?',
                 [groupId],
                 (err, row) => {
-                    if (err) return reject(err);
-                    if (!row) return resolve(null);
+                    if (err) {
+                        logger.error(`Error fetching group ${groupId}:`, err);
+                        return reject(err);
+                    }
+                    if (!row) {
+                        logger.warn(`Group with ID ${groupId} not found`);
+                        return resolve(null);
+                    }
                     
                     const group = row;
                     
@@ -121,7 +144,10 @@ class OrderGroupModel {
                         'SELECT id FROM orders WHERE group_id = ?',
                         [groupId],
                         (err, orderRows) => {
-                            if (err) return reject(err);
+                            if (err) {
+                                logger.error(`Error fetching orders for group ${groupId}:`, err);
+                                return reject(err);
+                            }
                             
                             group.orderIds = orderRows.map(row => row.id);
                             resolve(group);
@@ -138,9 +164,18 @@ class OrderGroupModel {
      * @returns {Promise<boolean>} True if deleted, false if not found
      */
     async deleteGroup(groupId) {
+        logger.info(`Deleting group with ID: ${groupId}`);
         return new Promise((resolve, reject) => {
             db.run('DELETE FROM order_groups WHERE id = ?', [groupId], function(err) {
-                if (err) return reject(err);
+                if (err) {
+                    logger.error(`Error deleting group ${groupId}:`, err);
+                    return reject(err);
+                }
+                if (this.changes > 0) {
+                    logger.info(`Successfully deleted group ${groupId}`);
+                } else {
+                    logger.warn(`Attempted to delete non-existent group ${groupId}`);
+                }
                 resolve(this.changes > 0);
             });
         });

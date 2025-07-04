@@ -53,7 +53,8 @@ function initializeDatabase() {
         'migrations/remove-admin-legacy-role.sql',
         'migrations/add-dispensaries-table.sql',
         'migrations/fix-admin-role.sql',
-        'migrations/013-add-is-duplicate-to-orders.sql'
+        'migrations/013-add-is-duplicate-to-orders.sql',
+        'migrations/014-add-order-groups.sql'
     ];
     
     const migrations = migrationFiles.map(file => {
