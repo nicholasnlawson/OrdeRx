@@ -13,7 +13,7 @@ class OrderGroupModel {
      * @returns {Promise<object>} Created group data
      */
     async createGroup(groupData) {
-        const { orderIds, groupNumber, notes } = groupData;
+        const { orderIds, groupNumber, notes, status = 'processing' } = groupData;
         
         if (!orderIds || !Array.isArray(orderIds) || orderIds.length === 0) {
             throw new Error('Order IDs must be a non-empty array');
@@ -54,8 +54,8 @@ class OrderGroupModel {
                             const updatePromises = orderIds.map(orderId => {
                                 return new Promise((resolveUpdate, rejectUpdate) => {
                                     db.run(
-                                        'UPDATE orders SET group_id = ? WHERE id = ?',
-                                        [groupId, orderId],
+                                        'UPDATE orders SET group_id = ?, status = ? WHERE id = ?',
+                                        [groupId, status, orderId],
                                         (err) => {
                                             if (err) {
                                                 logger.error(`Failed to update order ${orderId} with group_id ${groupId}:`, err);
@@ -83,6 +83,7 @@ class OrderGroupModel {
                                             id: groupId,
                                             groupNumber,
                                             notes,
+                                            status,
                                             timestamp,
                                             orderIds
                                         });
