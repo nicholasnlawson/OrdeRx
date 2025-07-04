@@ -52,7 +52,8 @@ function initializeDatabase() {
         'migrations/add-admin-role-types.sql',
         'migrations/remove-admin-legacy-role.sql',
         'migrations/add-dispensaries-table.sql',
-        'migrations/fix-admin-role.sql'
+        'migrations/fix-admin-role.sql',
+        'migrations/013-add-is-duplicate-to-orders.sql'
     ];
     
     const migrations = migrationFiles.map(file => {
