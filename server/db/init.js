@@ -54,7 +54,7 @@ function initializeDatabase() {
         'migrations/add-dispensaries-table.sql',
         'migrations/fix-admin-role.sql',
         'migrations/013-add-is-duplicate-to-orders.sql',
-        'migrations/014-add-order-groups.sql'
+        'migrations/015-consolidate-order-groups.sql'
     ];
     
     const migrations = migrationFiles.map(file => {
