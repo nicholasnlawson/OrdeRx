@@ -667,7 +667,7 @@ function createOrderGroup(orderIds, groupNumber, notes) {
         orderIds,
         groupNumber,
         notes,
-        status: 'in-progress' // Send status with group creation
+        status: 'processing' // Send status with group creation
     };
     
     console.log('Creating order group with data:', data);
@@ -731,11 +731,11 @@ function handleGroupCreationSuccess(result, orderIds, groupNumber) {
     // Add this successful group to our history cache
     addToOrderGroupsHistory(result);
     
-    // Update all order statuses to 'in-progress'
+    // Update all order statuses to 'processing'
     const groupReason = `Added to order group: ${groupNumber}`;
-    updateGroupOrderStatuses(orderIds, 'in-progress', groupReason)
+    updateGroupOrderStatuses(orderIds, 'processing', groupReason)
         .then(() => {
-            console.log('All orders in group updated to in-progress status');
+            console.log('All orders in group updated to processing status');
             
             // Refresh orders list to show the new grouping and status changes
             loadOrders();
@@ -1319,7 +1319,7 @@ function loadBothOrderTypes(container, filters) {
         
         try {
             // Get both in-progress and pending orders
-            const inProgressOrders = window.OrderManager.getOrdersByStatus('in-progress', filters);
+            const inProgressOrders = window.OrderManager.getOrdersByStatus('processing', filters);
             const pendingOrders = window.OrderManager.getOrdersByStatus('pending', filters);
             
             console.log('In-progress orders count:', inProgressOrders.length);
