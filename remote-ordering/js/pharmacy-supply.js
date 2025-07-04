@@ -948,77 +948,31 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // cleanJsonDisplay function is defined later in the file
 
-/**
- * Helper function to wait for the API client to become available
- * @returns {Promise<void>} A promise that resolves when the API client is available
- */
-function waitForApiClient() {
-    return new Promise(resolve => {
-        // If the API client is already available, resolve immediately
-        if (window.apiClient) {
-            console.log('[API] API client is already available');
-            return resolve();
-        }
-        
-        console.log('[API] Waiting for API client to initialize...');
-        
-        // Otherwise, check every 100ms until it's available
-        const checkInterval = setInterval(() => {
-            if (window.apiClient) {
-                console.log('[API] API client initialized successfully');
-                clearInterval(checkInterval);
-                resolve();
-            }
-        }, 100);
-        
-        // Set a timeout to prevent infinite waiting
-        setTimeout(() => {
-            if (!window.apiClient) {
-                console.error('[API] Timed out waiting for API client to initialize');
-                clearInterval(checkInterval);
-                // Resolve anyway to allow the page to continue loading
-                // (it will display appropriate errors to the user)
-                resolve();
-            }
-        }, 5000); // 5 second timeout
-    });
-}
-
-/**
- * Initialize the page by loading orders
- */
 async function initializePage() {
-    console.log('Initializing pharmacy supply page...');
-    console.log('Initial page load flag:', initialPageLoad);
-    
-    // Wait for apiClient to be available before proceeding
-    await waitForApiClient();
-    
     // Ensure user has selected a dispensary first (will show modal if not)
     await ensureDispensarySelected();
-    const wardFilter = document.getElementById('filter-ward');
-    const searchInput = document.getElementById('search-orders');
-    const refreshBtn = document.getElementById('refresh-orders-btn');
+        const wardFilter = document.getElementById('filter-ward');
+        const searchInput = document.getElementById('search-orders');
+        const refreshBtn = document.getElementById('refresh-orders-btn');
 
-    // Disable controls while loading
-    if (wardFilter) wardFilter.disabled = true;
-    if (searchInput) searchInput.disabled = true;
-    if (refreshBtn) refreshBtn.disabled = true;
+        // Disable controls until data is loaded
+        if (wardFilter) wardFilter.disabled = true;
+        if (searchInput) searchInput.disabled = true;
+        if (refreshBtn) refreshBtn.disabled = true;
 
-    // Show a loading indicator
-    const ordersList = document.getElementById('orders-list');
-    if (ordersList) {
-        ordersList.innerHTML = '<p class="loading-message">Loading all orders and groups...</p>';
-    }
+        // Show a loading indicator
+        const ordersList = document.getElementById('orders-list');
+        if (ordersList) {
+            ordersList.innerHTML = '<p class="loading-message">Loading all orders and groups...</p>';
+        }
 
-    await loadWardOptions();
+        await loadWardOptions();
     await loadDispensaryOptions();
-    
-    // Load all data in parallel and wait for it to complete
-    await Promise.all([
-        loadOrders(), 
-        loadOrderGroups()
-    ]);
+        // Load all data in parallel and wait for it to complete
+        await Promise.all([
+            loadOrders(), 
+            loadOrderGroups()
+        ]);
 
         // Enable controls now that data is loaded
         if (wardFilter) wardFilter.disabled = false;
@@ -1141,26 +1095,15 @@ function initializeOrderFilters() {
  */
 function loadWardOptions() {
     const wardSelect = document.getElementById('filter-ward');
-    if (!wardSelect) return Promise.resolve(); // Return a resolved promise
+    if (!wardSelect) return;
     
     // Keep the 'All' option
     const allOption = wardSelect.options[0];
     wardSelect.innerHTML = '';
     wardSelect.appendChild(allOption);
     
-    // Check if apiClient is available
-    if (!window.apiClient) {
-        console.warn('[WARNING] API client not yet available, retrying in 500ms...');
-        return new Promise(resolve => {
-            // Retry after a short delay
-            setTimeout(() => {
-                loadWardOptions().then(resolve);
-            }, 500);
-        });
-    }
-    
     // Fetch wards from API using apiClient
-    return window.apiClient.get('/wards')
+    window.apiClient.get('/wards')
         .then(data => {
             if (data.success && data.wards) {
                 data.wards.forEach(ward => {
@@ -1170,11 +1113,9 @@ function loadWardOptions() {
                     wardSelect.appendChild(option);
                 });
             }
-            return data; // Return the data for promise chaining
         })
         .catch(error => {
             console.error('Error loading wards:', error);
-            return { success: false, error }; // Return an error result
         });
 }
 
