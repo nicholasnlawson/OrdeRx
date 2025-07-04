@@ -148,7 +148,17 @@ const logError = (userId, error, details, ip) => {
   });
 };
 
+// Generic passthroughs so legacy code that calls logger.info / warn / error continues to work
+const info = (...args) => auditLogger.info(...args);
+const warn = (...args) => auditLogger.warn(...args);
+const error = (...args) => auditLogger.error(...args);
+
 module.exports = {
+  // Legacy style
+  info,
+  warn,
+  error,
+  // Structured helpers
   logAuth,
   logDataAccess,
   logDataModification,
