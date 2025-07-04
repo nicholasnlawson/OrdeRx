@@ -15,6 +15,10 @@ const db = require('./db/init');
 
 // Create Express app
 const app = express();
+
+// Trust the first proxy in front of the app (e.g., Render's load balancer)
+// This is crucial for express-rate-limit to work correctly behind a proxy.
+app.set('trust proxy', 1);
 const PORT = process.env.PORT || 3000;
 
 // Apply security headers
@@ -136,32 +140,33 @@ app.use((req, res, next) => {
   next();
 });
 
-// Global error handler
+// Global error handler - MUST be defined after all other app.use() and routes calls
 app.use((err, req, res, next) => {
-  // Get real client IP (handles proxies)
-  const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
-  
+  // Get real client IP (handles proxies since 'trust proxy' is set)
+  const ip = req.ip;
+
   // Extract user ID from JWT if available
-  let userId = 'ANONYMOUS';
-  if (req.user) {
-    userId = req.user.id;
-  }
-  
-  // Log the error
+  const userId = req.user ? req.user.id : 'ANONYMOUS';
+
+  // Log the error using the logger utility
   logger.logError(userId, err, {
     path: req.path,
-    method: req.method
+    method: req.method,
   }, ip);
-  
-  res.status(500).json({ error: 'Internal server error' });
-});
 
-// Error handling middleware
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({
+  // Determine the response based on the environment
+  const isProduction = process.env.NODE_ENV === 'production';
+  const statusCode = err.statusCode || 500;
+  const message = isProduction ? 'An unexpected error occurred.' : err.message || 'Internal Server Error';
+  const stack = isProduction ? null : err.stack;
+
+  // Send the error response
+  res.status(statusCode).json({
     success: false,
-    message: 'Something went wrong on the server'
+    error: {
+      message,
+      ...(stack && { stack }), // Include stack trace only in non-production environments
+    },
   });
 });
 
