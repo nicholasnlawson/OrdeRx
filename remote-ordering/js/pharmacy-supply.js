@@ -1337,7 +1337,7 @@ function loadBothOrderTypes(container, filters) {
     
     // If OrderManager didn't work, fall back to API
     // We'll need to make two separate requests
-    const statuses = ['in-progress', 'pending', 'unfulfilled', 'completed', 'cancelled'];
+    const statuses = ['processing', 'pending', 'unfulfilled', 'completed', 'cancelled'];
     const fetchPromises = statuses.map(st => fetchOrdersByStatus(st, filters));
     Promise.all(fetchPromises)
         .then(([inProgressOrders, pendingOrders, unfulfilledOrders, completedOrders, cancelledOrders]) => {
@@ -1438,25 +1438,30 @@ function displayOrdersWithSections(ordersByStatus, container) {
     const searchText = filters.searchText || '';
     
     // Get orders by status and apply search filter if needed
-    let { inProgress=[], pending=[], unfulfilled=[], completed=[], cancelled=[] } = ordersByStatus;
-    
+    let { processing=[], pending=[], unfulfilled=[], completed=[], cancelled=[] } = ordersByStatus;
+
+    // Map inProgress to processing for backward compatibility if needed
+    if (ordersByStatus.inProgress) {
+        processing = processing.concat(ordersByStatus.inProgress);
+    }
+
     // Only apply search filter if there's search text
     if (searchText) {
-        inProgress = applySearchFilter(inProgress, searchText);
+        processing = applySearchFilter(processing, searchText);
         pending = applySearchFilter(pending, searchText);
         unfulfilled = applySearchFilter(unfulfilled, searchText);
         completed = applySearchFilter(completed, searchText);
         cancelled = applySearchFilter(cancelled, searchText);
     }
     
-    const hasInProgress = inProgress.length > 0;
+    const hasProcessing = processing.length > 0;
     const hasPending = pending.length > 0;
     const hasUnfulfilled = unfulfilled.length > 0;
     const hasCompleted = completed.length > 0;
     const hasCancelled = cancelled.length > 0;
     
     // If there are no orders of any type, show empty state
-    if (!hasInProgress && !hasPending && !hasUnfulfilled && !hasCompleted && !hasCancelled) {
+    if (!hasProcessing && !hasPending && !hasUnfulfilled && !hasCompleted && !hasCancelled) {
         container.innerHTML = '<p class="empty-state">No orders found</p>';
         return;
     }
@@ -1478,10 +1483,10 @@ function displayOrdersWithSections(ordersByStatus, container) {
     }
     
     // Then create the Orders in Progress section if there are any
-    if (hasInProgress) {
+    if (hasProcessing) {
         const inProgressSection = document.createElement('div');
         inProgressSection.className = 'orders-section in-progress-section';
-        inProgressSection.innerHTML = `<h2>Orders In Progress</h2>`;
+        inProgressSection.innerHTML = `<h2>Processing Orders</h2>`;
         container.appendChild(inProgressSection);
         
         // Create container for in-progress orders
@@ -1490,7 +1495,7 @@ function displayOrdersWithSections(ordersByStatus, container) {
         inProgressSection.appendChild(inProgressContainer);
         
         // Display in-progress orders
-        displayOrders(inProgress, inProgressContainer, false); // false = don't allow selection of in-progress orders
+        displayOrders(processing, inProgressContainer, false); // false = don't allow selection of in-progress orders
     }
 
     // Additional sections: Unfulfilled, Completed, Cancelled
@@ -2948,7 +2953,11 @@ function formatValueForDisplay(value) {
  */
 function cleanJsonDisplay(jsonStr) {
     try {
-        // If jsonStr is already a string, try to parse it
+        // If jsonStr is a simple string that doesn't look like JSON, return it directly
+        if (typeof jsonStr === 'string' && !jsonStr.trim().startsWith('{') && !jsonStr.trim().startsWith('[')) {
+            return jsonStr;
+        }
+        // Otherwise, attempt to parse JSON (will be caught below if invalid)
         const obj = typeof jsonStr === 'string' ? JSON.parse(jsonStr) : jsonStr;
         
         // If it's not an object, return as is

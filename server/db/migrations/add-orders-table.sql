@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS orders (
   type TEXT NOT NULL CHECK (type IN ('patient', 'ward-stock')),
   ward_id INTEGER NOT NULL,
   timestamp TEXT NOT NULL,
-    status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'in-progress', 'processing', 'unfulfilled', 'completed', 'cancelled')),
+    status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'processing', 'unfulfilled', 'completed', 'cancelled')),
   requester_name TEXT NOT NULL,
   requester_role TEXT NOT NULL,
   notes TEXT,
