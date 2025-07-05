@@ -5481,97 +5481,69 @@ async function markOrderComplete(orderId, button) {
  */
 function openChangeStatusModal(orderId) {
     console.log('openChangeStatusModal called with ID:', orderId);
-    
-    // Don't open modal if no orderId is provided (prevents accidental opening)
+
     if (!orderId) {
         console.error('Cannot open status modal: No order ID provided');
         return;
     }
-    
-    // Get the modal element
+
     const modal = document.getElementById('change-status-modal');
-    console.log('Modal element found:', modal);
-    
-    const orderIdInput = document.getElementById('status-change-order-id');
-    const statusSelect = document.getElementById('new-status-select');
-    const notesInput = document.getElementById('status-change-notes');
-    
-    console.log('Modal elements found:', {
-        modal: !!modal,
-        orderIdInput: !!orderIdInput,
-        statusSelect: !!statusSelect,
-        notesInput: !!notesInput
-    });
-    
+    const orderIdInput = document.getElementById('status-order-id'); // This is the hidden input
+    const statusSelect = document.getElementById('order-status');
+    const notesInput = document.getElementById('status-notes');
+
     if (!modal || !orderIdInput || !statusSelect || !notesInput) {
-        console.error('Change status modal elements not found');
+        console.error('Change status modal elements not found. Please check HTML IDs.');
+        console.log({ // For debugging
+            modal: !!modal,
+            orderIdInput: !!orderIdInput,
+            statusSelect: !!statusSelect,
+            notesInput: !!notesInput
+        });
         return;
     }
-    
-    // Set values on the form
+
+    // Store the order ID on the modal's dataset for easy access
     modal.dataset.orderId = orderId;
-    orderIdInput.textContent = orderId;
-    console.log('Set order ID input value:', orderIdInput.textContent);
-    
-    // Clear the notes field
-    notesInput.value = '';
-    
-    // Reset the status dropdown to show current status if we can find it
+    // Set the value of the hidden input field
+    orderIdInput.value = orderId;
+
+    notesInput.value = ''; // Clear notes
+
     try {
         const order = OrderManager.getOrderById(orderId);
-        console.log('Current order found for status setting:', order);
         if (order && order.status) {
             statusSelect.value = order.status;
-            console.log('Set status select to:', statusSelect.value);
         } else {
             statusSelect.value = 'pending';
-            console.log('Set status select to default: pending');
         }
     } catch (err) {
         console.error('Error getting order status:', err);
         statusSelect.value = 'pending';
     }
-    
-    // Show the modal
-    console.log('About to show modal - current classes:', modal.className);
+
     modal.classList.remove('hidden');
     modal.style.display = 'flex';
-    console.log('Modal classes after showing:', modal.className);
-    console.log('Modal display style:', modal.style.display);
-    
-    // Force repaint to ensure modal appears (fix for some browser issues)
-    void modal.offsetWidth;
-    
-    // Add event listeners for confirming and cancelling
-    // Remove old listeners first to prevent duplicates
+
     const confirmBtn = document.getElementById('confirm-status-change-btn');
     const closeButtons = modal.querySelectorAll('.modal-close, .modal-close-btn');
-    
-    console.log('Found confirm button:', confirmBtn);
-    console.log('Found close buttons:', closeButtons.length);
-    
+
     if (confirmBtn) {
-        // Clone and replace to remove old listeners
         const newConfirmBtn = confirmBtn.cloneNode(true);
         confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
-        
-        // Add new listener
-        const refreshedBtn = document.getElementById('confirm-status-change-btn');
-        console.log('Set up new confirm button:', refreshedBtn);
-        refreshedBtn.addEventListener('click', () => {
-            console.log('Confirm status change button clicked');
-            const modal = document.getElementById('change-status-modal');
-            const orderId = modal.dataset.orderId;
-            const newStatus = document.getElementById('new-status-select').value;
-            const notes = document.getElementById('status-change-notes').value;
 
-            if (!orderId || !newStatus) {
+        newConfirmBtn.addEventListener('click', () => {
+            const currentOrderId = modal.dataset.orderId;
+            const newStatus = statusSelect.value;
+            const notes = notesInput.value;
+
+            if (!currentOrderId || !newStatus) {
                 showNotification('Please select a new status.', 'error');
                 return;
             }
 
             const performUpdate = () => {
-                updateOrderStatus(orderId, newStatus, notes);
+                updateOrderStatus(currentOrderId, newStatus, notes);
                 closeModal('change-status-modal');
             };
 
@@ -5585,41 +5557,15 @@ function openChangeStatusModal(orderId) {
                 performUpdate();
             }
         });
-        
-        // Make the button more visible and add a highlight effect
-        refreshedBtn.style.boxShadow = '0 0 10px rgba(0, 123, 255, 0.5)';
-        setTimeout(() => {
-            refreshedBtn.style.boxShadow = 'none';
-        }, 1000);
     }
-    
-    // Also add click listeners to close buttons
+
     closeButtons.forEach(button => {
         const newButton = button.cloneNode(true);
         button.parentNode.replaceChild(newButton, button);
         newButton.addEventListener('click', () => {
-            console.log('Close button clicked');
-            modal.classList.add('hidden');
-            modal.style.display = 'none';
+            closeModal('change-status-modal');
         });
     });
-    
-    // Ensure modal is shown by checking z-index and bringing it to the top
-    modal.style.zIndex = '1050';
-    
-    console.log('Modal setup complete');
-    
-    // Check if modal is visible after a slight delay
-    setTimeout(() => {
-        const isVisible = modal.style.display === 'flex' && !modal.classList.contains('hidden');
-        console.log('Is modal visible after timeout:', isVisible);
-        console.log('Modal current styles:', {
-            display: modal.style.display,
-            classes: modal.className,
-            zIndex: modal.style.zIndex,
-            opacity: getComputedStyle(modal).opacity
-        });
-    }, 100);
 }
 
 /**
@@ -5682,9 +5628,9 @@ function closeConfirmationModal() {
 async function confirmStatusChange() {
     console.log('confirmStatusChange function called');
     const modal = document.getElementById('change-status-modal');
-    const orderIdInput = document.getElementById('status-change-order-id');
-    const statusSelect = document.getElementById('new-status-select');
-    const notesInput = document.getElementById('status-change-notes');
+    const orderIdInput = document.getElementById('status-order-id');
+    const statusSelect = document.getElementById('order-status');
+    const notesInput = document.getElementById('status-notes');
     const confirmBtn = document.getElementById('confirm-status-change-btn');
     
     console.log('Form elements found:', {
@@ -5701,7 +5647,7 @@ async function confirmStatusChange() {
     
     const orderId = orderIdInput.value;
     const newStatus = statusSelect.value;
-    const notes = notesTextarea.value;
+    const notes = notesInput.value;
     
     console.log('Status change details:', { orderId, newStatus, notes });
     
