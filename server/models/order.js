@@ -11,6 +11,7 @@ const logger = {
 };
 const uuid = require('uuid');
 const encryption = require('../utils/encryption');
+const { normalizeMedicationString } = require('../utils/formulationAliases');
 
 // Fields to encrypt in orders table
 const SENSITIVE_FIELDS = [
@@ -1732,7 +1733,8 @@ const { modifiedBy = 'system', reason = null, dispensaryId = null, ...fieldsToUp
 
       // Build medication names list for the query
       const medicationNames = medications.map(med => med.name?.toLowerCase()).filter(name => name);
-      if (!medicationNames.length) {
+      const normalizedMedicationNames = medicationNames.map(name => normalizeMedicationString(name));
+      if (!normalizedMedicationNames.length) {
         return resolve([]);
       }
 
@@ -1799,7 +1801,7 @@ const { modifiedBy = 'system', reason = null, dispensaryId = null, ...fieldsToUp
       const whereConditionStr = whereConditions.map(cond => `AND ${cond}`).join(' ');
 
       // Transform medication names for more flexible matching
-      const transformedMedNames = medicationNames.map(name => {
+      const transformedMedNames = normalizedMedicationNames.map(name => {
         // Tokenize the medication name to make matching more flexible
         // Example: "Aspirin 75mg tablets" -> ["aspirin", "75mg", "tablets"]
         const tokens = name.toLowerCase().split(/\s+/);
@@ -1827,7 +1829,7 @@ const { modifiedBy = 'system', reason = null, dispensaryId = null, ...fieldsToUp
       queryParams.push(...medParams);
       
       // Add query to search for exact medication names as entered
-      medicationNames.forEach(fullName => {
+      normalizedMedicationNames.forEach(fullName => {
         medConditions.push('LOWER(m.name) LIKE ?');
         queryParams.push(`%${fullName.toLowerCase()}%`);
         logger.info(`Also checking for exact match: %${fullName.toLowerCase()}%`);
