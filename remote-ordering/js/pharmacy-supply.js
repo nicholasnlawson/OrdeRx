@@ -674,7 +674,7 @@ function createOrderGroup(orderIds, groupNumber, notes) {
     
     // Use OrderManager or fallback to direct fetch
     if (window.apiClient && typeof window.apiClient.post === 'function') {
-        return window.apiClient.post('/api/order-groups', data)
+        return window.apiClient.post('/order-groups', data)
             .then(result => {
                 handleGroupCreationSuccess(result, orderIds, groupNumber);
             })
