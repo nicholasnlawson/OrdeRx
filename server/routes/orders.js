@@ -119,6 +119,8 @@ router.get('/', hasRole(['admin', 'pharmacy', 'ordering']), async (req, res) => 
         id: order.id,
         type: order.type,
         wardId: order.wardId,
+        wardName: order.wardName,
+        hospitalName: order.hospitalName,
         timestamp: order.timestamp,
         status: order.status,
         patient: order.patient,

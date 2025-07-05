@@ -593,6 +593,19 @@ button[type="reset"]:hover,
 }
 
 /* Duplicate Order Styling */
+
+/* Critical Medication Badge */
+.critical-badge {
+  background-color: var(--danger-color);
+  color: #ffffff;
+  padding: 4px 8px;
+  border-radius: var(--border-radius);
+  font-size: 0.8em;
+  font-weight: bold;
+  margin-left: 6px;
+  display: inline-block;
+  vertical-align: middle;
+}
 .duplicate-order-tag {
   background-color: var(--danger-color);
   color: white;

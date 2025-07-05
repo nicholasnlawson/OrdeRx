@@ -3291,7 +3291,7 @@ async function loadRecentOrders() {
                 }
 
                 row.innerHTML = `
-                    <td>${patientInfo}</td>
+                    <td>${patientInfo}${order.isCritical ? ' <span class="critical-badge" style="background-color:#da291c;color:#fff;padding:4px 6px;border-radius:4px;font-size:0.8em;font-weight:bold;">CRITICAL</span>' : ''}</td>
                     <td>${order.wardName || 'N/A'}</td>
                     <td>${medicationsList}</td>
                     <td>${statusContent}</td>
