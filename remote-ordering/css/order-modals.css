@@ -418,6 +418,13 @@
   border: 1px solid #b9a6ff; /* lilac border */
 }
 
+/* Unfulfilled status */
+.status-unfulfilled {
+  background-color: #fff6f6; /* very light red */
+  color: #9a3f38;            /* dark red text */
+  border: 1px solid #f5c6cb; /* soft red border */
+}
+
 .cancelled-order td {
   color: #777;
   text-decoration: line-through;
