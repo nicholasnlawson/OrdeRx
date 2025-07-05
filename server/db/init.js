@@ -27,10 +27,30 @@ const db = new sqlite3.Database(dbPath, (err) => {
         console.log('Connected to SQLite database');
         // Only initialize automatically if not in explicit initialization mode
         if (!process.env.EXPLICIT_DB_INIT) {
-            initializeDatabase();
+            // Check if database is empty before initializing
+            checkDatabaseAndInitialize();
         }
     }
 });
+
+/**
+ * Check if the database has tables and initialize only if empty
+ */
+function checkDatabaseAndInitialize() {
+    db.all("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'", (err, tables) => {
+        if (err) {
+            console.error('Error checking database tables:', err.message);
+            return;
+        }
+        
+        if (tables.length === 0) {
+            console.log('Database is empty, initializing with schema and default data');
+            initializeDatabase();
+        } else {
+            console.log(`Database already contains ${tables.length} tables, skipping initialization`);
+        }
+    });
+}
 
 // Initialize the database with schema and default data
 function initializeDatabase() {
