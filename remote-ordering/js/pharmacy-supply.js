@@ -1591,6 +1591,31 @@ function displayOrders(orders, container, allowSelection = true) {
                 <tbody class="orders-table-body"></tbody>
             </table>
         `;
+        // Add clickable sorting on column headers
+        const table = tableContainer.querySelector('table');
+        const headers = table.querySelectorAll('thead th');
+        const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' });
+        headers.forEach((th, idx) => {
+            // Skip selection-checkbox column when present
+            if (withSelection && idx === 0) return;
+            th.style.cursor = 'pointer';
+            th.addEventListener('click', () => {
+                const asc = th.dataset.sortAsc !== 'true'; // toggle sort direction
+                // Clear sort flags on siblings
+                headers.forEach(h => { if (h !== th) delete h.dataset.sortAsc; });
+                th.dataset.sortAsc = asc;
+                const tbody = table.querySelector('tbody');
+                const rows = Array.from(tbody.querySelectorAll('tr'));
+                rows.sort((a, b) => {
+                    const aText = a.children[idx].textContent.trim();
+                    const bText = b.children[idx].textContent.trim();
+                    return asc ? collator.compare(aText, bText) : collator.compare(bText, aText);
+                });
+                // Re-attach rows in new order
+                rows.forEach(r => tbody.appendChild(r));
+            });
+        });
+
         return tableContainer;
     };
 
