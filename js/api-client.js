@@ -81,7 +81,10 @@ if (endpoint.startsWith('http')) {
       }
 
       if (!response.ok) {
-        throw new Error(data.message + (data.error ? ` (${data.error})` : ''));
+        const primaryMsg = data && (data.message || data.error || data.msg);
+        const detailMsg = data && data.details ? ` (${data.details})` : '';
+        const finalMsg = primaryMsg ? primaryMsg + detailMsg : `Request failed with status ${response.status}`;
+        throw new Error(finalMsg);
       }
 
       return data;

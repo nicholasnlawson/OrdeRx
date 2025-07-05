@@ -48,6 +48,10 @@ router.post('/', authMiddleware.verifyToken, async (req, res) => {
         res.status(201).json({ success: true, group });
     } catch (error) {
         console.error('Error in POST /api/order-groups:', error);
+        // Handle duplicate group number (UNIQUE constraint)
+        if (/(SQLITE_CONSTRAINT|unique constraint)/i.test(error.message)) {
+            return res.status(409).json({ success: false, error: 'Group number already exists', details: error.message });
+        }
         res.status(500).json({ success: false, error: 'Failed to create order group', details: error.message });
     }
 });

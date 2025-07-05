@@ -24,7 +24,7 @@ class OrderGroupModel {
             throw new Error('Group number is required');
         }
         
-        const timestamp = getTimestamp();
+        const createdAt = getTimestamp();
         
         return new Promise((resolve, reject) => {
             // Use SQLite's run method with a transaction
@@ -39,8 +39,8 @@ class OrderGroupModel {
 
                     // Insert new group into order_groups table
                     db.run(
-                        'INSERT INTO order_groups (group_number, notes, timestamp) VALUES (?, ?, ?)',
-                        [groupNumber, notes || '', timestamp],
+                        'INSERT INTO order_groups (group_number, notes, created_at) VALUES (?, ?, ?)',
+                        [groupNumber, notes || '', createdAt],
                         function(err) {
                             if (err) {
                                 db.run('ROLLBACK');
@@ -84,7 +84,7 @@ class OrderGroupModel {
                                             groupNumber,
                                             notes,
                                             status,
-                                            timestamp,
+                                            createdAt,
                                             orderIds
                                         });
                                     });
@@ -109,7 +109,7 @@ class OrderGroupModel {
         logger.info('Fetching all order groups');
         return new Promise((resolve, reject) => {
             db.all(
-                'SELECT * FROM order_groups ORDER BY timestamp DESC',
+                'SELECT * FROM order_groups ORDER BY created_at DESC',
                 [],
                 async (err, rows) => {
                     if (err) {
