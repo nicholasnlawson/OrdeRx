@@ -12,6 +12,7 @@ const logger = {
 const uuid = require('uuid');
 const encryption = require('../utils/encryption');
 const { normalizeMedicationString } = require('../utils/formulationAliases');
+const criticalMedications = require('../utils/criticalMedications');
 
 // Fields to encrypt in orders table
 const SENSITIVE_FIELDS = [
@@ -364,6 +365,7 @@ const OrderModel = {
 
                 if (medications && medications.length) {
                   orderResult.medications = medications.map(med => ({
+                    id: med.id,
                     name: med.name,
                     form: med.form,
                     strength: med.strength,
@@ -371,8 +373,14 @@ const OrderModel = {
                     dose: med.dose,
                     notes: med.notes
                   }));
+                  
+                  // Check if any medication in the order is critical
+                  orderResult.isCritical = medications.some(med => 
+                    criticalMedications.isCriticalDrug(med.name)
+                  );
                 } else {
                   orderResult.medications = [];
+                  orderResult.isCritical = false;
                 }
                 
                 // Now get ward details
@@ -683,6 +691,7 @@ const { modifiedBy = 'system', reason = null, dispensaryId = null, ...fieldsToUp
                   
                   if (medications && medications.length) {
                     orderData.medications = medications.map(med => ({
+                      id: med.id,
                       name: med.name,
                       form: med.form,
                       strength: med.strength,
@@ -690,8 +699,14 @@ const { modifiedBy = 'system', reason = null, dispensaryId = null, ...fieldsToUp
                       dose: med.dose,
                       notes: med.notes
                     }));
+                    
+                    // Check if any medication in the order is critical
+                    orderData.isCritical = medications.some(med => 
+                      criticalMedications.isCriticalDrug(med.name)
+                    );
                   } else {
                     orderData.medications = [];
+                    orderData.isCritical = false;
                   }
                   
                   // Order data complete, resolve this order
@@ -1835,7 +1850,13 @@ const { modifiedBy = 'system', reason = null, dispensaryId = null, ...fieldsToUp
         logger.info(`Also checking for exact match: %${fullName.toLowerCase()}%`);
       });
       
-      const medicationCondition = `AND (${medConditions.join(' OR ')})`;
+      // Build strength condition list
+      const strengthsSet = new Set(medications.map(m => (m.strength || '').toLowerCase()).filter(s => s));
+      const strengthCondition = strengthsSet.size ? `AND LOWER(m.strength) IN (${Array.from(strengthsSet).map(() => '?').join(',')})` : '';
+      if (strengthsSet.size) {
+        queryParams.push(...Array.from(strengthsSet));
+      }
+      const medicationCondition = `AND (${medConditions.join(' OR ')}) ${strengthCondition}`;
       
       // Build the SQL query with proper joins
       let sql;

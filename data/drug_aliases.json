@@ -636,6 +636,10 @@
     "aliases": ["aztreonam", "azactam", "cayston"]
   },
   {
+    "name": "Aztreonam/Avibactam",
+    "aliases": ["aztreonam/avibactam", "emblaveo"]
+  },
+  {
     "name": "B-Ketone",
     "aliases": ["b-ketone"]
   },

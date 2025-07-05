@@ -2394,6 +2394,8 @@ function setupMedicationAutocomplete(inputElement) {
             matches.forEach(med => {
                 const item = document.createElement('li');
                 item.textContent = med;
+                // tooltip element reference for this dropdown item
+                let tooltipElement = null;
                 
                 // Add visual indicator if this is a brand name exception
                 if (shouldPrescribeByBrand(med)) {
@@ -2406,7 +2408,6 @@ function setupMedicationAutocomplete(inputElement) {
                     const selectedMed = item.textContent;
                     
                     // Create tooltip element if it doesn't exist
-                    let tooltipElement = wrapper.querySelector('.medication-tooltip');
                     if (!tooltipElement) {
                         tooltipElement = document.createElement('div');
                         tooltipElement.className = 'medication-tooltip';

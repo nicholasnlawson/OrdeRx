@@ -1632,6 +1632,12 @@ function displayOrders(orders, container, allowSelection = true) {
             }
             
             // Create rows for each order in this group
+            // Sort orders: critical first
+            group.orders.sort((a, b) => {
+                if (a.isCritical && !b.isCritical) return -1;
+                if (!a.isCritical && b.isCritical) return 1;
+                return 0;
+            });
             group.orders.forEach(order => {
                 createOrderTableRow(order, tableBody, allowSelection);
             });
@@ -1697,6 +1703,12 @@ function displayOrders(orders, container, allowSelection = true) {
         }
         
         // Create rows for ungrouped orders - pass allowSelection parameter
+        // Sort ungrouped orders: critical first
+        ungroupedOrders.sort((a, b) => {
+            if (a.isCritical && !b.isCritical) return -1;
+            if (!a.isCritical && b.isCritical) return 1;
+            return 0;
+        });
         ungroupedOrders.forEach(order => {
             createOrderTableRow(order, tableBody, allowSelection);
         });
@@ -1775,6 +1787,21 @@ function createOrderTableRow(order, tableBody, allowSelection = true) {
     const patientCell = document.createElement('td');
     patientCell.className = 'patient-info';
     patientCell.innerHTML = patientInfo;
+    // Add critical badge if applicable
+    if (order.isCritical) {
+        const badge = document.createElement('span');
+        badge.className = 'critical-badge';
+        badge.textContent = 'CRITICAL';
+        // inline styling to ensure visibility even if CSS not yet defined
+        badge.style.backgroundColor = '#da291c';
+        badge.style.color = '#ffffff';
+        badge.style.padding = '4px 8px';
+        badge.style.borderRadius = '4px';
+        badge.style.fontSize = '0.8em';
+        badge.style.fontWeight = 'bold';
+        badge.style.marginLeft = '6px';
+        patientCell.appendChild(badge);
+    }
     row.appendChild(patientCell);
     
     // Ward info cell

@@ -113,7 +113,23 @@ router.get('/', hasRole(['admin', 'pharmacy', 'ordering']), async (req, res) => 
     };
 
     const orders = await OrderModel.getOrders(filters);
-    res.json({ success: true, orders });
+    res.json({
+      success: true,
+      orders: orders.map(order => ({
+        id: order.id,
+        type: order.type,
+        wardId: order.wardId,
+        timestamp: order.timestamp,
+        status: order.status,
+        patient: order.patient,
+        medications: order.medications,
+        requesterName: order.requesterName,
+        requesterRole: order.requesterRole,
+        notes: order.notes,
+        isCritical: order.isCritical,  // Include critical flag
+        is_duplicate: order.is_duplicate
+      })),
+    });
   } catch (error) {
     console.error('Error fetching orders:', error);
     res.status(500).json({ 
