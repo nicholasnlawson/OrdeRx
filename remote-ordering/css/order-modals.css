@@ -397,8 +397,8 @@
 }
 
 .status-processing {
-  background-color: #b3e5fc;
-  color: #0277bd;
+  background-color: #b3ebfc;
+  color: #029bbd;
 }
 
 .status-completed {
@@ -413,16 +413,16 @@
 
 /* In-Progress status */
 .status-in-progress {
-  background-color: #e6d7ff; /* light lilac */
-  color: #6b3fa0;            /* deep lilac text */
-  border: 1px solid #b9a6ff; /* lilac border */
+  background-color: #e6d7ff;
+  color: #6b3fa0;
+  border: 1px solid #b9a6ff;
 }
 
 /* Unfulfilled status */
 .status-unfulfilled {
-  background-color: #fff6f6; /* very light red */
-  color: #9a3f38;            /* dark red text */
-  border: 1px solid #f5c6cb; /* soft red border */
+  background-color: #7270ac;
+  color: #1d27a6;
+  border: 1px solid #2954b0;
 }
 
 .cancelled-order td {
