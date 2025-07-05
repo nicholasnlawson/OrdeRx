@@ -5492,28 +5492,29 @@ function openChangeStatusModal(orderId) {
     const modal = document.getElementById('change-status-modal');
     console.log('Modal element found:', modal);
     
-    const orderIdInput = document.getElementById('status-order-id');
-    const statusSelect = document.getElementById('order-status');
-    const notesTextarea = document.getElementById('status-notes');
+    const orderIdInput = document.getElementById('status-change-order-id');
+    const statusSelect = document.getElementById('new-status-select');
+    const notesInput = document.getElementById('status-change-notes');
     
     console.log('Modal elements found:', {
         modal: !!modal,
         orderIdInput: !!orderIdInput,
         statusSelect: !!statusSelect,
-        notesTextarea: !!notesTextarea
+        notesInput: !!notesInput
     });
     
-    if (!modal || !orderIdInput || !statusSelect || !notesTextarea) {
+    if (!modal || !orderIdInput || !statusSelect || !notesInput) {
         console.error('Change status modal elements not found');
         return;
     }
     
     // Set values on the form
-    orderIdInput.value = orderId;
-    console.log('Set order ID input value:', orderIdInput.value);
+    modal.dataset.orderId = orderId;
+    orderIdInput.textContent = orderId;
+    console.log('Set order ID input value:', orderIdInput.textContent);
     
     // Clear the notes field
-    notesTextarea.value = '';
+    notesInput.value = '';
     
     // Reset the status dropdown to show current status if we can find it
     try {
@@ -5559,7 +5560,30 @@ function openChangeStatusModal(orderId) {
         console.log('Set up new confirm button:', refreshedBtn);
         refreshedBtn.addEventListener('click', () => {
             console.log('Confirm status change button clicked');
-            confirmStatusChange();
+            const modal = document.getElementById('change-status-modal');
+            const orderId = modal.dataset.orderId;
+            const newStatus = document.getElementById('new-status-select').value;
+            const notes = document.getElementById('status-change-notes').value;
+
+            if (!orderId || !newStatus) {
+                showNotification('Please select a new status.', 'error');
+                return;
+            }
+
+            const performUpdate = () => {
+                updateOrderStatus(orderId, newStatus, notes);
+                closeModal('change-status-modal');
+            };
+
+            if (notes.trim() === '') {
+                showConfirmationModal(
+                    'No Notes Entered',
+                    'You have not entered any notes for this status change. This is not recommended for audit purposes. Do you want to proceed anyway?',
+                    performUpdate
+                );
+            } else {
+                performUpdate();
+            }
         });
         
         // Make the button more visible and add a highlight effect
@@ -5599,24 +5623,78 @@ function openChangeStatusModal(orderId) {
 }
 
 /**
+ * Shows a generic confirmation modal.
+ * @param {string} title - The title for the modal.
+ * @param {string} message - The message to display in the modal body.
+ * @param {function} onConfirm - Callback function to execute when the confirm button is clicked.
+ */
+function showConfirmationModal(title, message, onConfirm) {
+    const modal = document.getElementById('confirmation-modal');
+    const titleEl = document.getElementById('confirmation-title');
+    const messageEl = document.getElementById('confirmation-message');
+    const confirmBtn = document.getElementById('confirmation-confirm-btn');
+    const cancelBtn = document.getElementById('confirmation-cancel-btn');
+    const closeBtn = document.getElementById('confirmation-close-btn');
+
+    if (!modal || !titleEl || !messageEl || !confirmBtn || !cancelBtn || !closeBtn) {
+        console.error('Confirmation modal elements not found!');
+        return;
+    }
+
+    titleEl.textContent = title;
+    messageEl.textContent = message;
+
+    const confirmHandler = () => {
+        onConfirm();
+        closeConfirmationModal();
+    };
+
+    const cancelHandler = () => {
+        closeConfirmationModal();
+    };
+    
+    // Use cloneNode to remove any previous listeners and add new one-time listeners
+    const newConfirmBtn = confirmBtn.cloneNode(true);
+    confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+    newConfirmBtn.addEventListener('click', confirmHandler, { once: true });
+
+    const newCancelBtn = cancelBtn.cloneNode(true);
+    cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
+    newCancelBtn.addEventListener('click', cancelHandler, { once: true });
+    
+    const newCloseBtn = closeBtn.cloneNode(true);
+    closeBtn.parentNode.replaceChild(newCloseBtn, closeBtn);
+    newCloseBtn.addEventListener('click', cancelHandler, { once: true });
+
+    modal.classList.remove('hidden');
+}
+
+function closeConfirmationModal() {
+    const modal = document.getElementById('confirmation-modal');
+    if (modal) {
+        modal.classList.add('hidden');
+    }
+}
+
+/**
  * Confirm status change for an order
  */
 async function confirmStatusChange() {
     console.log('confirmStatusChange function called');
     const modal = document.getElementById('change-status-modal');
-    const orderIdInput = document.getElementById('status-order-id');
-    const statusSelect = document.getElementById('order-status');
-    const notesTextarea = document.getElementById('status-notes');
+    const orderIdInput = document.getElementById('status-change-order-id');
+    const statusSelect = document.getElementById('new-status-select');
+    const notesInput = document.getElementById('status-change-notes');
     const confirmBtn = document.getElementById('confirm-status-change-btn');
     
     console.log('Form elements found:', {
         orderIdInput: !!orderIdInput,
         statusSelect: !!statusSelect,
-        notesTextarea: !!notesTextarea,
+        notesInput: !!notesInput,
         confirmBtn: !!confirmBtn
     });
     
-    if (!orderIdInput || !statusSelect || !notesTextarea || !confirmBtn) {
+    if (!orderIdInput || !statusSelect || !notesInput || !confirmBtn) {
         console.error('Change status form elements not found');
         return;
     }
