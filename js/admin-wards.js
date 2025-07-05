@@ -147,6 +147,15 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   /**
+   * Refresh the hospitals list displayed in the UI (table and dropdown)
+   * Convenience wrapper so other code can simply call updateHospitalsList().
+   */
+  function updateHospitalsList() {
+    // Re-fetch hospitals from the API and update all relevant UI elements.
+    loadHospitals();
+  }
+
+  /**
    * Populate hospital dropdown in ward form
    * @param {Array} hospitals - List of hospitals
    */
