@@ -501,10 +501,10 @@ const { modifiedBy = 'system', reason = null, dispensaryId = null, ...fieldsToUp
               ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
               [
                 orderId,
-                'status_change',
+                `Status changed to ${status.charAt(0).toUpperCase() + status.slice(1)}`,
                 timestamp,
                 modifiedBy,
-                reason || `Status changed to ${status}`,
+                reason || `Status changed to ${status.charAt(0).toUpperCase() + status.slice(1)}`,
                 JSON.stringify({ status: previousStatus }),
                 JSON.stringify({ status, dispensaryId })
               ],
@@ -827,7 +827,7 @@ const { modifiedBy = 'system', reason = null, dispensaryId = null, ...fieldsToUp
                 ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
                 [
                   orderId,
-                  'status_change',
+                  `Status changed to ${status.charAt(0).toUpperCase() + status.slice(1)}`,
                   actualTimestamp,
                   cancelledBy,
                   reason,

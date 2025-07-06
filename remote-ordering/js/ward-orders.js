@@ -4134,6 +4134,11 @@ function showHistoryModal(orderId, historyData) {
                             }
                         } catch (e) {
                             console.error('Error parsing history JSON:', e);
+                            // Fallback: treat raw strings as displayable data
+                            if (!previousData && entry.previousData) previousData = entry.previousData;
+                            if (!previousData && entry.previous_data) previousData = entry.previous_data;
+                            if (!newData && entry.newData) newData = entry.newData;
+                            if (!newData && entry.new_data) newData = entry.new_data;
                             changesHTML = '<p class="text-danger">Error parsing change data</p>';
                         }
                         

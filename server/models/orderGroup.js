@@ -13,7 +13,7 @@ class OrderGroupModel {
      * @returns {Promise<object>} Created group data
      */
     async createGroup(groupData) {
-        const { orderIds, groupNumber, notes, status = 'processing' } = groupData;
+        const { orderIds, groupNumber, notes, status = 'processing', dispensaryId } = groupData;
         
         if (!orderIds || !Array.isArray(orderIds) || orderIds.length === 0) {
             throw new Error('Order IDs must be a non-empty array');
@@ -53,17 +53,48 @@ class OrderGroupModel {
                             // Create a promise for each order update
                             const updatePromises = orderIds.map(orderId => {
                                 return new Promise((resolveUpdate, rejectUpdate) => {
-                                    db.run(
-                                        'UPDATE orders SET group_id = ?, status = ? WHERE id = ?',
-                                        [groupId, status, orderId],
-                                        (err) => {
-                                            if (err) {
-                                                logger.error(`Failed to update order ${orderId} with group_id ${groupId}:`, err);
-                                                return rejectUpdate(err);
-                                            }
-                                            resolveUpdate();
+                                    // First, fetch existing order data so we can capture previous status / group if needed
+                                    db.get('SELECT status, group_id FROM orders WHERE id = ?', [orderId], (fetchErr, existingRow) => {
+                                        if (fetchErr) {
+                                            logger.error(`Failed to fetch existing data for order ${orderId}:`, fetchErr);
+                                            return rejectUpdate(fetchErr);
                                         }
-                                    );
+
+                                        db.run(
+                                            'UPDATE orders SET group_id = ?, status = ? WHERE id = ?',
+                                            [groupId, status, orderId],
+                                            function(err) {
+                                                if (err) {
+                                                    logger.error(`Failed to update order ${orderId} with group_id ${groupId}:`, err);
+                                                    return rejectUpdate(err);
+                                                }
+
+                                                // Insert audit trail for group add / processing status set
+                                                db.run(
+                                                    `INSERT INTO order_history (
+                                                        order_id, action_type, action_timestamp,
+                                                        modified_by, reason, previous_data, new_data
+                                                    ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+                                                    [
+                                                        orderId,
+                                                        `Status changed to ${status.charAt(0).toUpperCase() + status.slice(1)}`,
+                                                        getTimestamp(),
+                                                        groupData.createdBy || 'system',
+                                                        `Added to group ${groupNumber}`,
+                                                        existingRow ? JSON.stringify({ status: existingRow.status }) : null,
+                                                        JSON.stringify({ status: status, groupId: groupNumber, dispensaryId: dispensaryId || null })
+                                                    ],
+                                                    (auditErr) => {
+                                                        if (auditErr) {
+                                                            logger.error(`Failed to insert audit trail for order ${orderId}:`, auditErr);
+                                                            // We don't reject the main promise for audit failures to avoid losing the transaction
+                                                        }
+                                                        resolveUpdate();
+                                                    }
+                                                );
+                                            }
+                                        );
+                                    });
                                 });
                             });
                             

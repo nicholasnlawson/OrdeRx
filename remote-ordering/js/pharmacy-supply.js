@@ -667,10 +667,12 @@ function createOrderGroup(orderIds, groupNumber, notes) {
         orderIds,
         groupNumber,
         notes,
-        status: 'processing' // Send status with group creation
+        status: 'processing', // Send status with group creation
+        dispensaryId: selectedDispensaryId // Include the currently selected dispensary ID
     };
     
     console.log('Creating order group with data:', data);
+    console.log('Using dispensaryId for group creation:', selectedDispensaryId);
     
     // Use OrderManager or fallback to direct fetch
     if (window.apiClient && typeof window.apiClient.post === 'function') {
@@ -817,7 +819,11 @@ function toggleGroupSelectionMode() {
     }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+    // Ensure dispensary is selected before any other operations
+    await ensureDispensarySelected();
+    console.log('Dispensary initialized with ID:', selectedDispensaryId);
+    
     // Add the animation class to the container on load
     const ordersList = document.getElementById('orders-list');
     if (ordersList) {
@@ -2741,32 +2747,56 @@ function getDispensaryNameFromEntry(entry) {
     let dispensaryId = null;
     
     try {
-        // Check newData
+        // Check newData (camelCase)
         if (entry.newData) {
-            const newData = typeof entry.newData === 'string' ? 
-                JSON.parse(entry.newData) : entry.newData;
-            dispensaryId = newData.dispensaryId;
+            let newData;
+            try {
+                newData = typeof entry.newData === 'string' ? 
+                    JSON.parse(entry.newData) : entry.newData;
+                dispensaryId = newData?.dispensaryId;
+                console.log('[LOCATION] Found dispensaryId in newData:', dispensaryId);
+            } catch (e) {
+                console.warn('[LOCATION] Failed to parse newData JSON:', e);
+            }
         }
         
         // If not found, check new_data (snake_case)
         if (!dispensaryId && entry.new_data) {
-            const newData = typeof entry.new_data === 'string' ? 
-                JSON.parse(entry.new_data) : entry.new_data;
-            dispensaryId = newData.dispensaryId;
+            let newData;
+            try {
+                newData = typeof entry.new_data === 'string' ? 
+                    JSON.parse(entry.new_data) : entry.new_data;
+                dispensaryId = newData?.dispensaryId;
+                console.log('[LOCATION] Found dispensaryId in new_data:', dispensaryId);
+            } catch (e) {
+                console.warn('[LOCATION] Failed to parse new_data JSON:', e);
+            }
         }
         
         // If still not found, check previousData
         if (!dispensaryId && entry.previousData) {
-            const prevData = typeof entry.previousData === 'string' ? 
-                JSON.parse(entry.previousData) : entry.previousData;
-            dispensaryId = prevData.dispensaryId;
+            let prevData;
+            try {
+                prevData = typeof entry.previousData === 'string' ? 
+                    JSON.parse(entry.previousData) : entry.previousData;
+                dispensaryId = prevData?.dispensaryId;
+                console.log('[LOCATION] Found dispensaryId in previousData:', dispensaryId);
+            } catch (e) {
+                console.warn('[LOCATION] Failed to parse previousData JSON:', e);
+            }
         }
         
         // If still not found, check previous_data (snake_case)
         if (!dispensaryId && entry.previous_data) {
-            const prevData = typeof entry.previous_data === 'string' ? 
-                JSON.parse(entry.previous_data) : entry.previous_data;
-            dispensaryId = prevData.dispensaryId;
+            let prevData;
+            try {
+                prevData = typeof entry.previous_data === 'string' ? 
+                    JSON.parse(entry.previous_data) : entry.previous_data;
+                dispensaryId = prevData?.dispensaryId;
+                console.log('[LOCATION] Found dispensaryId in previous_data:', dispensaryId);
+            } catch (e) {
+                console.warn('[LOCATION] Failed to parse previous_data JSON:', e);
+            }
         }
         
         if (!dispensaryId) {
@@ -3178,7 +3208,8 @@ function showHistoryModal(orderId, historyData) {
                             if (entry.previousData) {
                                 prevObj = typeof entry.previousData === 'string' ? 
                                     JSON.parse(entry.previousData) : entry.previousData;
-                                if (prevObj && Object.keys(prevObj).length === 1 && prevObj.status) {
+                                // Always show just the status if it exists, remove dispensaryId and groupId
+                                if (prevObj && prevObj.status) {
                                     previousData = formatStatusDisplay(prevObj.status);
                                 } else {
                                     previousData = JSON.stringify(prevObj, null, 2);
@@ -3187,7 +3218,8 @@ function showHistoryModal(orderId, historyData) {
                             } else if (entry.previous_data) {
                                 prevObj = typeof entry.previous_data === 'string' ? 
                                     JSON.parse(entry.previous_data) : entry.previous_data;
-                                if (prevObj && Object.keys(prevObj).length === 1 && prevObj.status) {
+                                // Always show just the status if it exists, remove dispensaryId and groupId
+                                if (prevObj && prevObj.status) {
                                     previousData = formatStatusDisplay(prevObj.status);
                                 } else {
                                     previousData = JSON.stringify(prevObj, null, 2);
@@ -3207,7 +3239,8 @@ function showHistoryModal(orderId, historyData) {
                             if (entry.newData) {
                                 newObj = typeof entry.newData === 'string' ? 
                                     JSON.parse(entry.newData) : entry.newData;
-                                if (newObj && Object.keys(newObj).length === 1 && newObj.status) {
+                                // Always show just the status if it exists, remove dispensaryId and groupId
+                                if (newObj && newObj.status) {
                                     newData = formatStatusDisplay(newObj.status);
                                 } else {
                                     newData = JSON.stringify(newObj, null, 2);
@@ -3216,7 +3249,8 @@ function showHistoryModal(orderId, historyData) {
                             } else if (entry.new_data) {
                                 newObj = typeof entry.new_data === 'string' ? 
                                     JSON.parse(entry.new_data) : entry.new_data;
-                                if (newObj && Object.keys(newObj).length === 1 && newObj.status) {
+                                // Always show just the status if it exists, remove dispensaryId and groupId
+                                if (newObj && newObj.status) {
                                     newData = formatStatusDisplay(newObj.status);
                                 } else {
                                     newData = JSON.stringify(newObj, null, 2);
@@ -3229,7 +3263,12 @@ function showHistoryModal(orderId, historyData) {
                                 changesHTML = generateReadableDiff(prevObj, newObj);
                             }
                         } catch (e) {
-                            console.error('Error parsing history JSON:', e);
+                            console.error('[MODAL] Error parsing history JSON:', e);
+                            // Fallback: treat raw strings as displayable data
+                            if (!previousData && entry.previousData) previousData = entry.previousData;
+                            if (!previousData && entry.previous_data) previousData = entry.previous_data;
+                            if (!newData && entry.newData) newData = entry.newData;
+                            if (!newData && entry.new_data) newData = entry.new_data;
                             changesHTML = '<p class="text-danger">Error parsing change data</p>';
                         }
                         
