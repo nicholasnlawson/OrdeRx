@@ -1,0 +1,825 @@
+{
+  "fostair": [
+    { "values": "100/6", "units": "microg/microg" },
+    { "values": "200/6", "units": "microg/microg" }
+  ],
+  "fostair nexthaler": [
+    { "values": "100/6", "units": "microg/microg" },
+    { "values": "200/6", "units": "microg/microg" }
+  ],
+  "luforbec": [
+    { "values": "100/6", "units": "microg/microg" }
+  ],
+  "beclometasone/formoterol": [
+    { "values": "100/6", "units": "microg/microg" },
+    { "values": "200/6", "units": "microg/microg" }
+  ],
+  "symbicort": [
+    { "values": "100/6", "units": "microg/microg" },
+    { "values": "200/6", "units": "microg/microg" },
+    { "values": "400/12", "units": "microg/microg" }
+  ],
+  "duoresp spiromax": [
+    { "values": "160/4.5", "units": "microg/microg" },
+    { "values": "320/9", "units": "microg/microg" }
+  ],
+  "fobumix easyhaler": [
+    { "values": "160/4.5", "units": "microg/microg" },
+    { "values": "320/9", "units": "microg/microg" }
+  ],
+  "wockair": [
+    { "values": "160/4.5", "units": "microg/microg" },
+    { "values": "320/9", "units": "microg/microg" }
+  ],
+  "budesonide/formoterol": [
+    { "values": "100/6", "units": "microg/microg" },
+    { "values": "200/6", "units": "microg/microg" },
+    { "values": "400/12", "units": "microg/microg" },
+    { "values": "160/4.5", "units": "microg/microg" },
+    { "values": "320/9", "units": "microg/microg" }
+  ],
+  "seretide": [
+    { "values": "50/25", "units": "microg/microg" },
+    { "values": "125/25", "units": "microg/microg" },
+    { "values": "250/25", "units": "microg/microg" }
+  ],
+  "seretide accuhaler": [
+    { "values": "100/50", "units": "microg/microg" },
+    { "values": "250/50", "units": "microg/microg" },
+    { "values": "500/50", "units": "microg/microg" }
+  ],
+  "airflusol forspiro": [
+    { "values": "250/50", "units": "microg/microg" },
+    { "values": "500/50", "units": "microg/microg" }
+  ],
+  "avenor": [
+    { "values": "125/25", "units": "microg/microg" },
+    { "values": "250/25", "units": "microg/microg" }
+  ],
+  "combisal": [
+    { "values": "50/25", "units": "microg/microg" },
+    { "values": "125/25", "units": "microg/microg" },
+    { "values": "250/25", "units": "microg/microg" }
+  ],
+  "fixkoh": [
+    { "values": "125/25", "units": "microg/microg" },
+    { "values": "250/25", "units": "microg/microg" }
+  ],
+  "fusacomb easyhaler": [
+    { "values": "250/50", "units": "microg/microg" },
+    { "values": "500/50", "units": "microg/microg" }
+  ],
+  "seffalair spiromax": [
+    { "values": "250/50", "units": "microg/microg" },
+    { "values": "500/50", "units": "microg/microg" }
+  ],
+  "stalpex": [
+    { "values": "25/50", "units": "microg/microg" },
+    { "values": "125/25", "units": "microg/microg" },
+    { "values": "250/25", "units": "microg/microg" }
+  ],
+  "fluticasone/salmeterol": [
+    { "values": "50/25", "units": "microg/microg" },
+    { "values": "125/25", "units": "microg/microg" },
+    { "values": "250/25", "units": "microg/microg" },
+    { "values": "100/50", "units": "microg/microg" },
+    { "values": "250/50", "units": "microg/microg" },
+    { "values": "500/50", "units": "microg/microg" }
+  ],
+  "flutiform": [
+    { "values": "50/5", "units": "microg/microg" },
+    { "values": "125/5", "units": "microg/microg" },
+    { "values": "250/10", "units": "microg/microg" }
+  ],
+  "fluticasone/formoterol": [
+    { "values": "50/5", "units": "microg/microg" },
+    { "values": "125/5", "units": "microg/microg" },
+    { "values": "250/10", "units": "microg/microg" }
+  ],
+  "relvar ellipta": [
+    { "values": "92/22", "units": "microg/microg" },
+    { "values": "184/22", "units": "microg/microg" }
+  ],
+  "fluticasone/vilanterol": [
+    { "values": "92/22", "units": "microg/microg" },
+    { "values": "184/22", "units": "microg/microg" }
+  ],
+  "trelegy ellipta": [
+    { "values": "92/55/22", "units": "microg/microg/microg" },
+    { "values": "184/55/22", "units": "microg/microg/microg" }
+  ],
+  "fluticasone/umeclidinium/vilanterol": [
+    { "values": "92/55/22", "units": "microg/microg/microg" },
+    { "values": "184/55/22", "units": "microg/microg/microg" }
+  ],
+  "trimbow": [
+    { "values": "87/5/9", "units": "microg/microg/microg" }
+  ],
+  "trimbow nexthaler": [
+    { "values": "88/5/9", "units": "microg/microg/microg" }
+  ],
+  "beclometasone/formoterol/glycopyrronium": [
+    { "values": "87/5/9", "units": "microg/microg/microg" },
+    { "values": "88/5/9", "units": "microg/microg/microg" }
+  ],
+  "trixeo aerosphere": [
+    { "values": "5/7.2/160", "units": "microg/microg/microg" }
+  ],
+  "glycopyrronium/formoterol/budesonide": [
+    { "values": "5/7.2/160", "units": "microg/microg/microg" }
+  ],
+  "enerzair breezhaler": [
+    { "values": "114/46/136", "units": "microg/microg/microg" }
+  ],
+  "indacaterol/mometasone/glycopyrronium": [
+    { "values": "114/46/136", "units": "microg/microg/microg" }
+  ],
+  "ultibro breezhaler": [
+    { "values": "85/43", "units": "microg/microg" }
+  ],
+  "indacaterol/glycopyrronium": [
+    { "values": "85/43", "units": "microg/microg" }
+  ],
+  "anoro ellipta": [
+    { "values": "55/22", "units": "microg/microg" }
+  ],
+  "umeclidinium/vilanterol": [
+    { "values": "55/22", "units": "microg/microg" }
+  ],
+  "duaklir genuair": [
+    { "values": "340/12", "units": "microg/microg" }
+  ],
+  "aclidinium/formoterol": [
+    { "values": "340/12", "units": "microg/microg" }
+  ],
+  "spiolto respimat": [
+    { "values": "2.5/2.5", "units": "microg/microg" }
+  ],
+  "tiotropium/olodaterol": [
+    { "values": "2.5/2.5", "units": "microg/microg" }
+  ],
+  "bevespi aerosphere": [
+    { "values": "7.2/5", "units": "microg/microg" }
+  ],
+  "glycopyrronium/formoterol": [
+    { "values": "7.2/5", "units": "microg/microg" }
+  ],
+  "atectura breezhaler": [
+    { "values": "125/127.5", "units": "microg/microg" },
+    { "values": "125/260", "units": "microg/microg" }
+  ],
+  "indacaterol/mometasone": [
+    { "values": "125/127.5", "units": "microg/microg" },
+    { "values": "125/260", "units": "microg/microg" }
+  ],
+  "combivent": [
+    { "values": "100/20", "units": "microg/microg" }
+  ],
+  "ipramol": [
+    { "values": "500/100", "units": "microg/microg" }
+  ],
+  "salbutamol/ipratropium": [
+    { "values": "100/20", "units": "microg/microg" },
+    { "values": "500/100", "units": "microg/microg" }
+  ],
+  "abacavir/lamivudine": [
+    { "values": "600/300", "units": "mg/mg" }
+  ],
+  "adapalene/benzoyl peroxide": [
+    { "values": "0.1/2.5", "units": "%/%" }
+  ],
+  "amlodipine/valsartan": [
+    { "values": "5/80", "units": "mg/mg" },
+    { "values": "5/160", "units": "mg/mg" },
+    { "values": "10/80", "units": "mg/mg" },
+    { "values": "10/160", "units": "mg/mg" }
+  ],
+  "amlodipine/valsartan/hydrochlorothiazide": [
+    { "values": "5/160/12.5", "units": "mg/mg/mg" },
+    { "values": "10/160/12.5", "units": "mg/mg/mg" },
+    { "values": "10/160/25", "units": "mg/mg/mg" },
+    { "values": "10/320/25", "units": "mg/mg/mg" }
+  ],
+  "amiloride/cyclopenthiazide": [
+    { "values": "2.5/25", "units": "mg/mg" }
+  ],
+  "amiloride/furosemide": [
+    { "values": "2.5/20", "units": "mg/mg" },
+    { "values": "5/40", "units": "mg/mg" }
+  ],
+  "amiloride/hydrochlorothiazide": [
+    { "values": "2.5/25", "units": "mg/mg" },
+    { "values": "5/50", "units": "mg/mg" }
+  ],
+  "artemether/lumefantrine": [
+    { "values": "20/120", "units": "mg/mg" }
+  ],
+  "articaine/adrenaline": [
+    { "values": "40/0.005", "units": "mg/ml/mg/ml" },
+    { "values": "40/0.01", "units": "mg/ml/mg/ml" }
+  ],
+  "ascorbic acid/zinc": [
+    { "values": "100/10", "units": "mg/mg" }
+  ],
+  "atazanavir/cobicistat": [
+    { "values": "300/150", "units": "mg/mg" }
+  ],
+  "atenolol/chlortalidone": [
+    { "values": "50/12.5", "units": "mg/mg" },
+    { "values": "100/25", "units": "mg/mg" }
+  ],
+  "atovaquone/proguanil": [
+    { "values": "250/100", "units": "mg/mg" }
+  ],
+  "aviptadil/phentolamine": [
+    { "values": "27/1", "units": "microg/microg" }
+  ],
+  "azelastine/fluticasone": [
+    { "values": "137/50", "units": "microg/microg" }
+  ],
+  "aztreonam/avibactam": [
+    { "values": "2000/500", "units": "mg/mg" }
+  ],
+  "bempedoic/ezetimibe": [
+    { "values": "180/10", "units": "mg/mg" }
+  ],
+  "betamethasone/clioquinol": [
+    { "values": "0.1/3", "units": "%/%" }
+  ],
+  "betamethasone/fusidic acid": [
+    { "values": "0.1/2", "units": "%/%" }
+  ],
+  "betamethasone/neomycin": [
+    { "values": "0.1/0.5", "units": "%/%" }
+  ],
+  "betamethasone/salicylic acid": [
+    { "values": "0.1/2", "units": "%/%" }
+  ],
+  "bictegravir/emtricitabine/tenofovir": [
+    { "values": "50/200/25", "units": "mg/mg/mg" }
+  ],
+  "bimatoprost/timolol": [
+    { "values": "0.3/5", "units": "mg/ml/mg/ml" }
+  ],
+  "bismuth potassium/metronidazole/tetracycline": [
+    { "values": "140/125/125", "units": "mg/mg/mg" }
+  ],
+  "brimonidine/timolol": [
+    { "values": "2/5", "units": "mg/ml/mg/ml" }
+  ],
+  "brinzolamide/brimonidine": [
+    { "values": "10/2", "units": "mg/ml/mg/ml" }
+  ],
+  "brinzolamide/timolol": [
+    { "values": "10/5", "units": "mg/ml/mg/ml" }
+  ],
+  "bupivacaine/adrenaline": [
+    { "values": "2.5/0.0025", "units": "mg/ml/mg/ml" },
+    { "values": "5/0.005", "units": "mg/ml/mg/ml" }
+  ],
+  "bupivacaine/fentanyl": [
+    { "values": "1.25/3", "units": "mg/ml/microg/ml" }
+  ],
+  "buprenorphine/naloxone": [
+    { "values": "2/0.5", "units": "mg/mg" },
+    { "values": "8/2", "units": "mg/mg" }
+  ],
+  "cabotegravir/rilpivirine": [
+    { "values": "30/21", "units": "mg/mg" },
+    { "values": "400/600", "units": "mg/mg" }
+  ],
+  "calamine/zinc oxide": [
+    { "values": "15/5", "units": "%/%" }
+  ],
+  "calcipotriol/betamethasone": [
+    { "values": "50/0.5", "units": "microg/g/mg/g" }
+  ],
+  "calcium acetate/magnesium carbonate": [
+    { "values": "435/235", "units": "mg/mg" }
+  ],
+  "calcium carbonate/calcium lactate gluconate": [
+    { "values": "600/1000", "units": "mg/mg" }
+  ],
+  "calcium/ergocalciferol": [
+    { "values": "500/400", "units": "mg/unit" }
+  ],
+  "canagliflozin/metformin": [
+    { "values": "50/850", "units": "mg/mg" },
+    { "values": "50/1000", "units": "mg/mg" },
+    { "values": "150/850", "units": "mg/mg" },
+    { "values": "150/1000", "units": "mg/mg" }
+  ],
+  "casirivimab/imdevimab": [
+    { "values": "120/120", "units": "mg/ml/mg/ml" }
+  ],
+  "ceftazidime/avibactam": [
+    { "values": "2000/500", "units": "mg/mg" }
+  ],
+  "ceftolozane/tazobactam": [
+    { "values": "1000/500", "units": "mg/mg" }
+  ],
+  "chlorhexidine/neomycin": [
+    { "values": "0.2/0.5", "units": "%/%" }
+  ],
+  "chlorhexidine gluconate/isopropyl alcohol": [
+    { "values": "2/70", "units": "%/%" }
+  ],
+  "cinnarizine/dimenhydrinate": [
+    { "values": "20/40", "units": "mg/mg" }
+  ],
+  "ciprofloxacin/dexamethasone": [
+    { "values": "2/1", "units": "mg/ml/mg/ml" }
+  ],
+  "citric acid/magnesium carbonate": [
+    { "values": "3.5/1.5", "units": "g/g" }
+  ],
+  "citric acid/potassium citrate": [
+    { "values": "33.4/10", "units": "%/%" }
+  ],
+  "clindamycin/benzoyl peroxide": [
+    { "values": "1/5", "units": "%/%" }
+  ],
+  "clobetasol propionate/neomycin sulfate/nystatin": [
+    { "values": "0.05/0.5/100000", "units": "%/%/unit" }
+  ],
+  "clobetasone/oxytetracycline/nystatin": [
+    { "values": "0.05/3/100000", "units": "%/%/unit" }
+  ],
+  "clotrimazole/betamethasone": [
+    { "values": "1/0.05", "units": "%/%" }
+  ],
+  "co-amoxiclav": [
+    { "values": "250/125", "units": "mg/mg" },
+    { "values": "500/125", "units": "mg/mg" },
+    { "values": "875/125", "units": "mg/mg" }
+  ],
+  "coal tar/salicylic acid": [
+    { "values": "5/2", "units": "%/%" }
+  ],
+  "coal tar/zinc oxide": [
+    { "values": "3/10", "units": "%/%" }
+  ],
+  "codeine/paracetamol": [
+    { "values": "8/500", "units": "mg/mg" },
+    { "values": "15/500", "units": "mg/mg" },
+    { "values": "30/500", "units": "mg/mg" }
+  ],
+  "colecalciferol/calcium carbonate": [
+    { "values": "800/1000", "units": "unit/mg" }
+  ],
+  "cyproterone/ethinylestradiol": [
+    { "values": "2/0.035", "units": "mg/mg" }
+  ],
+  "dantron/poloxamer": [
+    { "values": "50/100", "units": "mg/mg" }
+  ],
+  "dapagliflozin/metformin": [
+    { "values": "5/850", "units": "mg/mg" },
+    { "values": "5/1000", "units": "mg/mg" },
+    { "values": "10/850", "units": "mg/mg" },
+    { "values": "10/1000", "units": "mg/mg" }
+  ],
+  "darunavir/cobicistat": [
+    { "values": "800/150", "units": "mg/mg" }
+  ],
+  "decitabine/cedazuridine": [
+    { "values": "35/100", "units": "mg/mg" }
+  ],
+  "dexamethasone/neomycin/polymyxin": [
+    { "values": "1/3500/6000", "units": "mg/ml/unit/ml/unit/ml" }
+  ],
+  "dextropropoxyphene/paracetamol": [
+    { "values": "65/650", "units": "mg/mg" }
+  ],
+  "diclofenac/misoprostol": [
+    { "values": "50/200", "units": "mg/microg" },
+    { "values": "75/200", "units": "mg/microg" }
+  ],
+  "diethyl phthalate/methyl salicylate": [
+    { "values": "10/10", "units": "%/%" }
+  ],
+  "dihydrocodeine/paracetamol": [
+    { "values": "10/500", "units": "mg/mg" },
+    { "values": "20/500", "units": "mg/mg" },
+    { "values": "30/500", "units": "mg/mg" }
+  ],
+  "diphenoxylate/atropine": [
+    { "values": "2.5/0.025", "units": "mg/mg" }
+  ],
+  "dipyridamole/aspirin": [
+    { "values": "200/25", "units": "mg/mg" }
+  ],
+  "disodium hydrogen citrate/glucose potassium chloride/sodium chloride": [
+    { "values": "2.5/10/1.5/2.5", "units": "g/g/g/g" }
+  ],
+  "dithranol/salicylic acid/zinc oxide": [
+    { "values": "0.25/2.5/25", "units": "%/%/%" }
+  ],
+  "dolutegravir/abacavir/lamivudine": [
+    { "values": "50/600/300", "units": "mg/mg/mg" }
+  ],
+  "dolutegravir/lamivudine": [
+    { "values": "50/300", "units": "mg/mg" }
+  ],
+  "dolutegravir/rilpivirine": [
+    { "values": "50/25", "units": "mg/mg" }
+  ],
+  "doravirine/lamivudine/tenofovir": [
+    { "values": "100/300/300", "units": "mg/mg/mg" }
+  ],
+  "dorzolamide/timolol": [
+    { "values": "20/5", "units": "mg/ml/mg/ml" }
+  ],
+  "doxylamine/pyridoxine": [
+    { "values": "10/10", "units": "mg/mg" }
+  ],
+  "dutasteride/tamsulosin": [
+    { "values": "0.5/0.4", "units": "mg/mg" }
+  ],
+  "efavirenz/emtricitabine/tenofovir disoproxil": [
+    { "values": "600/200/300", "units": "mg/mg/mg" }
+  ],
+  "elbasvir/grazoprevir": [
+    { "values": "50/100", "units": "mg/mg" }
+  ],
+  "elvitegravir/cobicistat/emtricitabine/tenofovir": [
+    { "values": "150/150/200/300", "units": "mg/mg/mg/mg" }
+  ],
+  "elvitegravir/cobicistat/emtricitabine/tenofovir alafenamide": [
+    { "values": "150/150/200/10", "units": "mg/mg/mg/mg" }
+  ],
+  "elvitegravir/cobicistat/emtricitabine/tenofovir disoproxil": [
+    { "values": "150/150/200/300", "units": "mg/mg/mg/mg" }
+  ],
+  "empagliflozin/metformin": [
+    { "values": "5/850", "units": "mg/mg" },
+    { "values": "5/1000", "units": "mg/mg" },
+    { "values": "12.5/850", "units": "mg/mg" },
+    { "values": "12.5/1000", "units": "mg/mg" }
+  ],
+  "emtricitabine/rilpivirine/tenofovir alafenamide": [
+    { "values": "200/25/25", "units": "mg/mg/mg" }
+  ],
+  "emtricitabine/rilpivirine/tenofovir disoproxil": [
+    { "values": "200/25/300", "units": "mg/mg/mg" }
+  ],
+  "emtricitabine/tenofovir": [
+    { "values": "200/300", "units": "mg/mg" }
+  ],
+  "emtricitabine/tenofovir alafenamide": [
+    { "values": "200/10", "units": "mg/mg" },
+    { "values": "200/25", "units": "mg/mg" }
+  ],
+  "ergometrine/oxytocin": [
+    { "values": "0.5/5", "units": "mg/units" }
+  ],
+  "erythromycin/zinc": [
+    { "values": "4/1.2", "units": "%/%" }
+  ],
+  "ferrous sulfate/folic acid": [
+    { "values": "200/0.25", "units": "mg/mg" },
+    { "values": "300/0.35", "units": "mg/mg" }
+  ],
+  "flumetasone/clioquinol": [
+    { "values": "0.02/1", "units": "%/%" }
+  ],
+  "follitropin/lutropin": [
+    { "values": "150/75", "units": "unit/unit" }
+  ],
+  "formoterol fumarate/glycopyrronium/budesonide": [
+    { "values": "5/7.2/160", "units": "microg/microg/microg" }
+  ],
+  "foslevodopa/foscarbidopa": [
+    { "values": "1000/40", "units": "mg/ml/mg/ml" }
+  ],
+  "gentamicin/heparin": [
+    { "values": "3/100", "units": "mg/ml/unit/ml" }
+  ],
+  "gentamicin/hydrocortisone": [
+    { "values": "0.3/1", "units": "%/%" }
+  ],
+  "glecaprevir/pibrentasvir": [
+    { "values": "100/40", "units": "mg/mg" }
+  ],
+  "glycopyrronium/neostigmine": [
+    { "values": "0.2/1", "units": "mg/ml/mg/ml" }
+  ],
+  "hydrocortisone/benzalkonium chloride/dimeticone/nystatin": [
+    { "values": "1/0.1/10/100000", "units": "%/%/%/unit" }
+  ],
+  "hydrocortisone/clotrimazole": [
+    { "values": "1/1", "units": "%/%" }
+  ],
+  "hydrocortisone/fusidic acid": [
+    { "values": "1/2", "units": "%/%" }
+  ],
+  "imipenem/cilastatin": [
+    { "values": "500/500", "units": "mg/mg" }
+  ],
+  "insulin glargine/lixisenatide": [
+    { "values": "100/33", "units": "units/ml/microg/ml" },
+    { "values": "100/50", "units": "units/ml/microg/ml" }
+  ],
+  "intralipid/vitlipid": [
+    { "values": "20/20", "units": "%/%" }
+  ],
+  "irbesartan/hydrochlorothiazide": [
+    { "values": "150/12.5", "units": "mg/mg" },
+    { "values": "300/12.5", "units": "mg/mg" },
+    { "values": "300/25", "units": "mg/mg" }
+  ],
+  "isoniazid/rifampicin": [
+    { "values": "150/300", "units": "mg/mg" }
+  ],
+  "isoniazid/rifampicin/pyrazinamide/ethambutol": [
+    { "values": "75/150/400/275", "units": "mg/mg/mg/mg" }
+  ],
+  "ivacaftor/tezacaftor/elexacaftor": [
+    { "values": "75/50/100", "units": "mg/mg/mg" }
+  ],
+  "lamivudine/tenofovir disoproxil/doravirine": [
+    { "values": "300/300/100", "units": "mg/mg/mg" }
+  ],
+  "lamivudine/zidovudine": [
+    { "values": "150/300", "units": "mg/mg" }
+  ],
+  "latanoprost/timolol": [
+    { "values": "50/5", "units": "microg/ml/mg/ml" }
+  ],
+  "ledipasvir/sofosbuvir": [
+    { "values": "90/400", "units": "mg/mg" }
+  ],
+  "levodopa/benserazide": [
+    { "values": "50/12.5", "units": "mg/mg" },
+    { "values": "100/25", "units": "mg/mg" },
+    { "values": "200/50", "units": "mg/mg" }
+  ],
+  "levodopa/carbidopa": [
+    { "values": "100/10", "units": "mg/mg" },
+    { "values": "100/25", "units": "mg/mg" },
+    { "values": "250/25", "units": "mg/mg" }
+  ],
+  "levodopa/carbidopa/entacapone": [
+    { "values": "50/12.5/200", "units": "mg/mg/mg" },
+    { "values": "100/25/200", "units": "mg/mg/mg" },
+    { "values": "150/37.5/200", "units": "mg/mg/mg" }
+  ],
+  "levobupivacaine/fentanyl": [
+    { "values": "2.5/3", "units": "mg/ml/microg/ml" }
+  ],
+  "lidocaine/adrenaline": [
+    { "values": "10/0.005", "units": "mg/ml/mg/ml" },
+    { "values": "20/0.01", "units": "mg/ml/mg/ml" }
+  ],
+  "lidocaine/chlorhexidine": [
+    { "values": "2/0.05", "units": "%/%" }
+  ],
+  "lidocaine/fluorescein": [
+    { "values": "2/0.25", "units": "%/%" }
+  ],
+  "lidocaine/glucose": [
+    { "values": "10/5", "units": "mg/ml/mg/ml" }
+  ],
+  "lidocaine/phenylephrine": [
+    { "values": "5/0.0025", "units": "mg/ml/mg/ml" }
+  ],
+  "lidocaine/prilocaine": [
+    { "values": "2.5/2.5", "units": "%/%" }
+  ],
+  "lisinopril/hydrochlorothiazide": [
+    { "values": "10/12.5", "units": "mg/mg" },
+    { "values": "20/12.5", "units": "mg/mg" }
+  ],
+  "lopinavir/ritonavir": [
+    { "values": "200/50", "units": "mg/mg" },
+    { "values": "100/25", "units": "mg/mg" }
+  ],
+  "losartan/hydrochlorothiazide": [
+    { "values": "50/12.5", "units": "mg/mg" },
+    { "values": "100/12.5", "units": "mg/mg" },
+    { "values": "100/25", "units": "mg/mg" }
+  ],
+  "lumacaftor/ivacaftor": [
+    { "values": "200/125", "units": "mg/mg" }
+  ],
+  "l-ornithine/l-aspartate": [
+    { "values": "3/3", "units": "g/g" }
+  ],
+  "magnesium citrate/sodium picosulfate": [
+    { "values": "1.75/10", "units": "g/mg" }
+  ],
+  "mebeverine/ispaghula husk": [
+    { "values": "135/3.5", "units": "mg/g" }
+  ],
+  "metformin/alogliptin": [
+    { "values": "1000/12.5", "units": "mg/mg" }
+  ],
+  "methylprednisolone/lidocaine": [
+    { "values": "40/10", "units": "mg/mg" }
+  ],
+  "miconazole/hydrocortisone": [
+    { "values": "2/1", "units": "%/%" }
+  ],
+  "midazolam/lidocaine": [
+    { "values": "5/2", "units": "mg/ml/mg/ml" }
+  ],
+  "naltrexone/bupropion": [
+    { "values": "8/90", "units": "mg/mg" }
+  ],
+  "naproxen/esomeprazole": [
+    { "values": "375/20", "units": "mg/mg" },
+    { "values": "500/20", "units": "mg/mg" }
+  ],
+  "netupitant/palonosetron": [
+    { "values": "300/0.5", "units": "mg/mg" }
+  ],
+  "nirmatrelvir/ritonavir": [
+    { "values": "150/100", "units": "mg/mg" }
+  ],
+  "nystatin/chlorhexidine/hydrocortisone": [
+    { "values": "100000/0.1/1", "units": "unit/%/%" }
+  ],
+  "olmesartan/amlodipine": [
+    { "values": "20/5", "units": "mg/mg" },
+    { "values": "40/5", "units": "mg/mg" },
+    { "values": "40/10", "units": "mg/mg" }
+  ],
+  "olmesartan/amlodipine/hydrochlorothiazide": [
+    { "values": "20/5/12.5", "units": "mg/mg/mg" },
+    { "values": "40/5/12.5", "units": "mg/mg/mg" },
+    { "values": "40/10/12.5", "units": "mg/mg/mg" },
+    { "values": "40/5/25", "units": "mg/mg/mg" },
+    { "values": "40/10/25", "units": "mg/mg/mg" }
+  ],
+  "ombitasvir/paritaprevir/ritonavir": [
+    { "values": "12.5/75/50", "units": "mg/mg/mg" }
+  ],
+  "oxycodone/naloxone": [
+    { "values": "5/2.5", "units": "mg/mg" },
+    { "values": "10/5", "units": "mg/mg" },
+    { "values": "20/10", "units": "mg/mg" },
+    { "values": "40/20", "units": "mg/mg" }
+  ],
+  "papaverine/phentolamine": [
+    { "values": "30/1", "units": "mg/mg" }
+  ],
+  "paracetamol/buclizine/codeine": [
+    { "values": "500/6.25/8", "units": "mg/mg/mg" }
+  ],
+  "paracetamol/isometheptene": [
+    { "values": "325/65", "units": "mg/mg" }
+  ],
+  "perindopril/amlodipine": [
+    { "values": "5/5", "units": "mg/mg" },
+    { "values": "10/5", "units": "mg/mg" },
+    { "values": "10/10", "units": "mg/mg" }
+  ],
+  "perindopril/indapamide": [
+    { "values": "2/0.625", "units": "mg/mg" },
+    { "values": "4/1.25", "units": "mg/mg" }
+  ],
+  "perindopril arginine/indapamide": [
+    { "values": "2.5/0.625", "units": "mg/mg" },
+    { "values": "5/1.25", "units": "mg/mg" },
+    { "values": "10/2.5", "units": "mg/mg" }
+  ],
+  "pertuzumab/trastuzumab": [
+    { "values": "420/420", "units": "mg/mg" }
+  ],
+  "phenylephrine/tropicamide": [
+    { "values": "5/0.5", "units": "mg/ml/mg/ml" }
+  ],
+  "pioglitazone/metformin": [
+    { "values": "15/850", "units": "mg/mg" }
+  ],
+  "piperacillin/tazobactam": [
+    { "values": "2/0.25", "units": "g/g" },
+    { "values": "4/0.5", "units": "g/g" }
+  ],
+  "potassium chloride/rice powder/sodium chloride/sodium citrate": [
+    { "values": "1.5/50/1.75/2.9", "units": "g/g/g/g" }
+  ],
+  "potassium citrate/potassium bicarbonate": [
+    { "values": "3/2", "units": "g/g" }
+  ],
+  "potassium/glucose": [
+    { "values": "20/5", "units": "mmol/l/g/l" }
+  ],
+  "potassium/glucose/sodium chloride": [
+    { "values": "10/5/0.9", "units": "mmol/l/g/l/%" }
+  ],
+  "potassium/sodium chloride": [
+    { "values": "20/0.9", "units": "mmol/l/%" }
+  ],
+  "potassum chloride/potassium bicarbonate": [
+    { "values": "25/25", "units": "mEq/mEq" }
+  ],
+  "povidone iodine/boric acid": [
+    { "values": "10/5", "units": "%/%" }
+  ],
+  "prilocaine/felypressin": [
+    { "values": "30/0.03", "units": "mg/ml/unit/ml" }
+  ],
+  "proxymetacaine/fluorescein": [
+    { "values": "0.5/0.25", "units": "%/%" }
+  ],
+  "relugolix/estradiol/norethisterone": [
+    { "values": "40/1/0.5", "units": "mg/mg/mg" }
+  ],
+  "rifampicin/ethambutol/isoniazid/pyrazinamide": [
+    { "values": "150/275/75/400", "units": "mg/mg/mg/mg" }
+  ],
+  "rifampicin/isoniazid/pyrazinamide": [
+    { "values": "120/50/300", "units": "mg/mg/mg" }
+  ],
+  "rilpivirine/emtricitabine/tenofovir": [
+    { "values": "25/200/300", "units": "mg/mg/mg" }
+  ],
+  "sacubitril/valsartan": [
+    { "values": "24/26", "units": "mg/mg" },
+    { "values": "49/51", "units": "mg/mg" },
+    { "values": "97/103", "units": "mg/mg" }
+  ],
+  "senna/ispaghula husk": [
+    { "values": "12.4/3.5", "units": "mg/g" }
+  ],
+  "sitagliptin/metformin": [
+    { "values": "50/850", "units": "mg/mg" },
+    { "values": "50/1000", "units": "mg/mg" }
+  ],
+  "sodium acid phosphate/sodium phosphate": [
+    { "values": "48/18", "units": "g/g" }
+  ],
+  "sodium alginate/potassium bicarbonate": [
+    { "values": "500/100", "units": "mg/mg" }
+  ],
+  "sofosbuvir/velpatasvir": [
+    { "values": "400/100", "units": "mg/mg" }
+  ],
+  "sofosbuvir/velpatasvir/voxilaprevir": [
+    { "values": "400/100/100", "units": "mg/mg/mg" }
+  ],
+  "tamsulosin/dutasteride": [
+    { "values": "0.4/0.5", "units": "mg/mg" }
+  ],
+  "tamsulosin/solifenacin": [
+    { "values": "0.4/6", "units": "mg/mg" }
+  ],
+  "telmisartan/hydrochlorothiazide": [
+    { "values": "40/12.5", "units": "mg/mg" },
+    { "values": "80/12.5", "units": "mg/mg" },
+    { "values": "80/25", "units": "mg/mg" }
+  ],
+  "tezacaftor/ivacaftor": [
+    { "values": "100/150", "units": "mg/mg" }
+  ],
+  "tramadol/dexketoprofen": [
+    { "values": "75/25", "units": "mg/mg" }
+  ],
+  "tramadol/paracetamol": [
+    { "values": "37.5/325", "units": "mg/mg" }
+  ],
+  "travoprost/timolol": [
+    { "values": "40/5", "units": "microg/ml/mg/ml" }
+  ],
+  "tretinoin/clindamycin": [
+    { "values": "0.025/1", "units": "%/%" }
+  ],
+  "tretinoin/erythromycin": [
+    { "values": "0.025/4", "units": "%/%" }
+  ],
+  "triamcinolone/neomycin/nystatin/gramicidin": [
+    { "values": "0.1/0.25/100000/0.025", "units": "%/%/unit/%" }
+  ],
+  "triamterene/chlortalidone": [
+    { "values": "50/50", "units": "mg/mg" }
+  ],
+  "trifluridine/tipiracil": [
+    { "values": "15/6.14", "units": "mg/mg" },
+    { "values": "20/8.19", "units": "mg/mg" }
+  ],
+  "trimethoprim/sulfamethoxazole": [
+    { "values": "80/400", "units": "mg/mg" },
+    { "values": "160/800", "units": "mg/mg" }
+  ],
+  "valsartan/hydrochlorothiazide": [
+    { "values": "80/12.5", "units": "mg/mg" },
+    { "values": "160/12.5", "units": "mg/mg" },
+    { "values": "160/25", "units": "mg/mg" },
+    { "values": "320/12.5", "units": "mg/mg" },
+    { "values": "320/25", "units": "mg/mg" }
+  ],
+  "vancomycin/heparin": [
+    { "values": "1000/5000", "units": "mg/unit" }
+  ],
+  "vildagliptin/metformin": [
+    { "values": "50/850", "units": "mg/mg" },
+    { "values": "50/1000", "units": "mg/mg" }
+  ],
+  "xylometazoline/antazoline": [
+    { "values": "0.5/0.5", "units": "mg/ml/mg/ml" }
+  ],
+  "zidovudine/lamivudine": [
+    { "values": "300/150", "units": "mg/mg" }
+  ]
+}

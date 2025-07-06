@@ -1840,7 +1840,8 @@ function createOrderTableRow(order, tableBody, allowSelection = true) {
     medsCell.className = 'medications-info';
     medsCell.innerHTML = medicationsList;
 
-    if (order.isDuplicate && order.status === 'pending') {
+    // Show duplicate warning tag if marked as duplicate by backend (snake_case) or frontend (camelCase)
+    if ((order.isDuplicate || order.is_duplicate) && order.status === 'pending') {
         const duplicateTag = document.createElement('span');
         duplicateTag.className = 'duplicate-order-tag';
         duplicateTag.textContent = 'RECENT DUPLICATE - PLEASE CHECK IF STILL REQUIRED';

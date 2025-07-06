@@ -1850,12 +1850,30 @@ const { modifiedBy = 'system', reason = null, dispensaryId = null, ...fieldsToUp
         logger.info(`Also checking for exact match: %${fullName.toLowerCase()}%`);
       });
       
-      // Build strength condition list
-      const strengthsSet = new Set(medications.map(m => (m.strength || '').toLowerCase()).filter(s => s));
-      const strengthCondition = strengthsSet.size ? `AND LOWER(m.strength) IN (${Array.from(strengthsSet).map(() => '?').join(',')})` : '';
-      if (strengthsSet.size) {
-        queryParams.push(...Array.from(strengthsSet));
+      // Build strength condition list (numeric-only comparison to ignore units)
+      // Extract numeric component from each strength string, e.g. "500mg" -> "500", "2.5 micrograms" -> "2.5"
+      const extractNumeric = str => {
+        if (!str) return null;
+        const match = str.match(/\d+(?:\.\d+)?/); // captures integers and decimals
+        return match ? match[0] : null;
+      };
+
+      const numericStrengthsSet = new Set(
+        medications
+          .map(m => extractNumeric((m.strength || '').toLowerCase()))
+          .filter(s => s) // remove null/empty
+      );
+
+      let strengthCondition = '';
+      if (numericStrengthsSet.size) {
+        // Build LIKE conditions such that we match any strength containing the numeric value
+        // This allows "500 mg", "500mg", "500 milligrams" etc. to be treated equally.
+        const strengthLikeClauses = Array.from(numericStrengthsSet).map(() => 'm.strength LIKE ?');
+        strengthCondition = `AND (${strengthLikeClauses.join(' OR ')})`;
+        // Add parameters like "%500%" so SQLite will match regardless of surrounding text
+        queryParams.push(...Array.from(numericStrengthsSet).map(num => `%${num}%`));
       }
+
       const medicationCondition = `AND (${medConditions.join(' OR ')}) ${strengthCondition}`;
       
       // Build the SQL query with proper joins

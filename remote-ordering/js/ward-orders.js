@@ -2160,7 +2160,7 @@ function initMedicationAutocomplete() {
             console.log('[AUTO] medicationsData loaded:', window.medicationsData ? window.medicationsData.length : 'None');
             console.log('[AUTO] aliasToGenericMap loaded:', window.aliasToGenericMap ? Object.keys(window.aliasToGenericMap).length : 'None');
             
-            const medicationNameInputs = document.querySelectorAll('.medication-name');
+            const medicationNameInputs = document.querySelectorAll('.med-name, .medication-name');
             console.log('[AUTO] Found medication name inputs:', medicationNameInputs.length);
             medicationNameInputs.forEach(input => {
                 setupMedicationAutocomplete(input);
@@ -2206,6 +2206,41 @@ async function loadMedicationData() {
         const formulationAliasesResponse = await fetch('/data/formulation_aliases.json');
         let formulationAliasesData = await formulationAliasesResponse.json();
         
+        // Load combination inhaler strength list
+        const comboStrengthsResponse = await fetch('/data/combination_strengths.json');
+        let comboStrengthsData = {};
+        try {
+            comboStrengthsData = await comboStrengthsResponse.json();
+        } catch (err) {
+            console.warn('[AUTO] No combination_strengths.json found or invalid JSON. Skipping combo strengths setup.');
+        }
+
+        // Build lowercase lookup map for quick case-insensitive access
+        const combinationStrengthsMap = {};
+        if (comboStrengthsData && typeof comboStrengthsData === 'object') {
+            Object.entries(comboStrengthsData).forEach(([drug, strengths]) => {
+                if (Array.isArray(strengths)) {
+                    combinationStrengthsMap[drug.toLowerCase()] = strengths;
+                }
+            });
+        }
+        // Extend map to include aliases for combination medications so that alias names also trigger dropdowns
+        if (Array.isArray(drugAliasesData)) {
+            drugAliasesData.forEach(drugObj => {
+                const canonical = (drugObj.name || '').toLowerCase();
+                if (canonical && combinationStrengthsMap[canonical] && Array.isArray(drugObj.aliases)) {
+                    drugObj.aliases.forEach(alias => {
+                        const key = alias.toLowerCase();
+                        if (!combinationStrengthsMap[key]) {
+                            combinationStrengthsMap[key] = combinationStrengthsMap[canonical];
+                        }
+                    });
+                }
+            });
+        }
+        
+        window.combinationStrengthsMap = combinationStrengthsMap;
+
         // Load brand exceptions list
         const brandExceptionsResponse = await fetch('/data/brand_exceptions.json');
         let brandExceptionsData = await brandExceptionsResponse.json();
@@ -2244,6 +2279,136 @@ async function loadMedicationData() {
         };
         
         // Add getGenericName function to map aliases to generic names
+        // Utility: check if a medication is a combination inhaler present in our combo list
+        window.isCombinationMedication = function(medicationName) {
+            if (!medicationName || !window.combinationStrengthsMap) return false;
+            return Boolean(window.combinationStrengthsMap[medicationName.toLowerCase()]);
+        };
+
+        // Utility: get available combo strengths
+        window.getCombinationStrengths = function(medicationName) {
+            if (!medicationName || !window.combinationStrengthsMap) return [];
+            const data = window.combinationStrengthsMap[medicationName.toLowerCase()] || [];
+            if (!Array.isArray(data)) return [];
+            if (data.length === 0) return [];
+            // If stored as objects {values, units}, extract the values field
+            if (typeof data[0] === 'object') {
+                return data.map(entry => entry.values || '').filter(Boolean);
+            }
+            // Already array of strings
+            return data;
+        };
+
+
+        // Update or create strength field (dropdown) based on whether the selected medication is a combination inhaler
+        window.updateStrengthFieldForMedication = function(nameInputElement) {
+            if (!nameInputElement) return;
+            const medName = (nameInputElement.value || '').trim();
+            if (!medName) return;
+
+            // Determine index and prefix (ward stock vs patient)
+            const id = nameInputElement.id || '';
+            const match = id.match(/^(ws-)?med-name-(\d+)$/);
+            if (!match) return;
+            const isWardStock = Boolean(match[1]);
+            const index = match[2];
+            const strengthFieldId = `${isWardStock ? 'ws-' : ''}med-strength-${index}`;
+
+            let strengthElem = document.getElementById(strengthFieldId);
+            if (!strengthElem) return;
+
+            const container = strengthElem.parentElement;
+            // If user has already switched this field to a custom free-text input, keep it as is
+            if (strengthElem.tagName.toLowerCase() === 'input' && strengthElem.dataset.custom === 'true') {
+                return;
+            }
+            const isCombo = window.isCombinationMedication(medName);
+
+            if (isCombo) {
+                const strengths = window.getCombinationStrengths(medName);
+                if (!Array.isArray(strengths) || !strengths.length) return;
+
+                if (strengthElem.tagName.toLowerCase() === 'select') {
+                    // Already a dropdown – refresh options
+                    strengthElem.innerHTML = '';
+                    strengths.forEach(s => {
+                        const opt = document.createElement('option');
+                        opt.value = s;
+                        opt.textContent = s;
+                        strengthElem.appendChild(opt);
+                    });
+                    // Add a free-text option
+                    const otherOpt = document.createElement('option');
+                    otherOpt.value = '__custom__';
+                    otherOpt.textContent = 'Other / free text…';
+                    strengthElem.appendChild(otherOpt);
+                    // Handle custom selection
+                    strengthElem.addEventListener('change', function() {
+                        if (this.value === '__custom__') {
+                            const input = document.createElement('input');
+                            input.type = 'text';
+                            input.id = strengthFieldId;
+                            input.className = 'med-strength';
+                            input.placeholder = 'Enter strength';
+                            input.autocomplete = 'nope';
+                            input.setAttribute('autocorrect', 'off');
+                            input.spellcheck = false;
+                            input.dataset.custom = 'true';
+                            container.replaceChild(input, this);
+                            input.focus();
+                        }
+                    });
+                } else {
+                    // Replace text input with select dropdown
+                    const select = document.createElement('select');
+                    select.id = strengthFieldId;
+                    select.className = 'med-strength';
+                    strengths.forEach(s => {
+                        const opt = document.createElement('option');
+                        opt.value = s;
+                        opt.textContent = s;
+                        select.appendChild(opt);
+                    });
+                    // Add a free-text option
+                    const otherOpt = document.createElement('option');
+                    otherOpt.value = '__custom__';
+                    otherOpt.textContent = 'Other / free text…';
+                    select.appendChild(otherOpt);
+                    // Handle custom selection
+                    select.addEventListener('change', function() {
+                        if (this.value === '__custom__') {
+                            const input = document.createElement('input');
+                            input.type = 'text';
+                            input.id = strengthFieldId;
+                            input.className = 'med-strength';
+                            input.placeholder = 'Enter strength';
+                            input.autocomplete = 'nope';
+                            input.setAttribute('autocorrect', 'off');
+                            input.spellcheck = false;
+                            input.dataset.custom = 'true';
+                            container.replaceChild(input, this);
+                            input.focus();
+                        }
+                    });
+                    container.replaceChild(select, strengthElem);
+                    strengthElem = select;
+                }
+            } else {
+                // Not a combination medication – ensure it's a text input, replacing dropdown if necessary
+                if (strengthElem.tagName.toLowerCase() === 'select') {
+                    const input = document.createElement('input');
+                    input.type = 'text';
+                    input.id = strengthFieldId;
+                    input.className = 'med-strength';
+                    input.placeholder = 'e.g., 500mg';
+                    input.autocomplete = 'nope';
+                    input.setAttribute('autocorrect', 'off');
+                    input.spellcheck = false;
+                    container.replaceChild(input, strengthElem);
+                }
+            }
+        };
+
         window.getGenericName = function(medicationName) {
             if (!medicationName) return medicationName;
             
@@ -2344,6 +2509,19 @@ function setupMedicationAutocomplete(inputElement) {
     
     // Add autocomplete="off" to prevent browser autofill
     inputElement.setAttribute('autocomplete', 'off');
+
+    // Ensure the linked strength field switches appropriately when the name changes
+    const _syncStrengthField = () => {
+        if (typeof window.updateStrengthFieldForMedication === 'function') {
+            window.updateStrengthFieldForMedication(inputElement);
+        }
+    };
+    // Initial call (in case field already has a value)
+    _syncStrengthField();
+    // React to user edits and autocomplete selection
+    inputElement.addEventListener('input', _syncStrengthField);
+    inputElement.addEventListener('change', _syncStrengthField);
+    inputElement.addEventListener('blur', _syncStrengthField);
     
     // Create the autocomplete dropdown
     const dropdownList = document.createElement('ul');
@@ -2503,6 +2681,19 @@ function setupFormulationAutocomplete(inputElement) {
     
     // Add autocomplete="off" to prevent browser autofill
     inputElement.setAttribute('autocomplete', 'off');
+
+    // Ensure the linked strength field switches appropriately when the name changes
+    const _syncStrengthField = () => {
+        if (typeof window.updateStrengthFieldForMedication === 'function') {
+            window.updateStrengthFieldForMedication(inputElement);
+        }
+    };
+    // Initial call (in case field already has a value)
+    _syncStrengthField();
+    // React to user edits and autocomplete selection
+    inputElement.addEventListener('input', _syncStrengthField);
+    inputElement.addEventListener('change', _syncStrengthField);
+    inputElement.addEventListener('blur', _syncStrengthField);
     
     // Create the autocomplete dropdown
     const dropdownList = document.createElement('ul');

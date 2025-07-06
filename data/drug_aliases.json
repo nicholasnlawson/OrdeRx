@@ -144,7 +144,7 @@
     "aliases": ["ajmaline"]
   },
   {
-    "name": "Akynzeo",
+    "name": "netupitant/palonosetron",
     "aliases": ["akynzeo", "netupitant/palonosetron"]
   },
   {
@@ -472,7 +472,7 @@
     "aliases": ["artesunate"]
   },
   {
-    "name": "Arthrotec",
+    "name": "diclofenac/misoprostol",
     "aliases": ["arthrotec", "diclofenac/misoprostol"]
   },
   {
@@ -720,7 +720,7 @@
     "aliases": ["bempedoic acid", "nilemdo"]
   },
   {
-    "name": "Bempedoic/Ezetimibe",
+    "name": "Bempedoic Acid/Ezetimibe",
     "aliases": ["bempedoic/ezetimibe", "bempedoic acid/ezetimibe", "nustendi"]
   },
   {
@@ -2044,7 +2044,7 @@
     "aliases": ["dtap/ipv/hib", "dtap/ipv/hib/hepb", "td/ipv", "dtap/ipv", "pediacel", "infanrix", "boostrix", "repevax"]
   },
   {
-    "name": "Duac",
+    "name": "clindamycin/benzoyl peroxide",
     "aliases": ["duac", "clindamycin/benzoyl peroxide"]
   },
   {
@@ -3908,8 +3908,8 @@
     "aliases": ["malathion", "derbac", "prioderm", "suleo-m"]
   },
   {
-    "name": "Manevac",
-    "aliases": ["manevac"]
+    "name": "Senna/Isphagua Husk",
+    "aliases": ["manevac", "senna/ispaghula husk"]
   },
   {
     "name": "Mannitol",
@@ -6644,7 +6644,7 @@
     "aliases": ["zanubrutinib", "brukinsa"]
   },
   {
-    "name": "Zepatier",
+    "name": "Elbasvir/Grazoprevir",
     "aliases": ["zepatier", "elbasvir/grazoprevir"]
   },
   {

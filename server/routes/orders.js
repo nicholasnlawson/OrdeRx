@@ -129,6 +129,7 @@ router.get('/', hasRole(['admin', 'pharmacy', 'ordering']), async (req, res) => 
         requesterRole: order.requesterRole,
         notes: order.notes,
         isCritical: order.isCritical,  // Include critical flag
+        isDuplicate: order.isDuplicate,
         is_duplicate: order.is_duplicate
       })),
     });
@@ -159,6 +160,8 @@ router.get('/:id', hasRole(['admin', 'pharmacy', 'ordering']), async (req, res) 
       });
     }
     
+    // Expose duplicate flag in both naming conventions for frontend compatibility
+    order.isDuplicate = order.isDuplicate ?? order.is_duplicate;
     res.json({ success: true, order });
   } catch (error) {
     console.error('Error fetching order by ID:', error);
