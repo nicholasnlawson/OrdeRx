@@ -21,7 +21,7 @@ router.post('/', authMiddleware.verifyToken, async (req, res) => {
     console.log('Request body:', JSON.stringify(req.body, null, 2));
 
     try {
-        const { orderIds, groupNumber, notes, status } = req.body;
+        const { orderIds, groupNumber, notes, status, dispensaryId } = req.body;
 
         if (!orderIds || !Array.isArray(orderIds) || orderIds.length === 0) {
             console.warn('Validation failed: Order IDs must be a non-empty array.');
@@ -38,7 +38,9 @@ router.post('/', authMiddleware.verifyToken, async (req, res) => {
             groupNumber,
             notes: notes || '',
             status: status || 'processing',
-            createdBy: req.user.id, // Assuming user ID is available from auth middleware
+            dispensaryId: dispensaryId || null,  // Include dispensaryId in group data
+            createdBy: req.user.username || req.user.name || req.user.id, // Use username instead of ID
+            createdById: req.user.id, // Keep ID as a separate field if needed
         };
 
         console.log('Calling orderGroupModel.createGroup with data:', groupData);

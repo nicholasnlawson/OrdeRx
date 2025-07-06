@@ -79,7 +79,7 @@ class OrderGroupModel {
                                                         orderId,
                                                         `Status changed to ${status.charAt(0).toUpperCase() + status.slice(1)}`,
                                                         getTimestamp(),
-                                                        groupData.createdBy || 'system',
+                                                        groupData.createdBy || 'system', // Use username passed from route handler
                                                         `Added to group ${groupNumber}`,
                                                         existingRow ? JSON.stringify({ status: existingRow.status }) : null,
                                                         JSON.stringify({ status: status, groupId: groupNumber, dispensaryId: dispensaryId || null })
