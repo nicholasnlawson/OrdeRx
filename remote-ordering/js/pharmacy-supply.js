@@ -98,6 +98,9 @@ async function ensureDispensarySelected() {
         return;
     }
 
+    // Clear any existing options to avoid duplicates from multiple initializations
+    selectEl.innerHTML = '';
+
     // Populate list
     const dispensaries = await fetchDispensaries();
     dispensaries.forEach(disp => {
