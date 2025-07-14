@@ -26,8 +26,10 @@ const AuthUtils = {
     }
     
     this._dataLoaded = true;
-    // Dispatch the event synchronously now that data is loaded
-    document.dispatchEvent(new CustomEvent('authDataReady', { detail: { userData: this._userData } }));
+    // Use a timeout to ensure the event is dispatched after the main thread is less busy
+    setTimeout(() => {
+        document.dispatchEvent(new CustomEvent('authDataReady', { detail: { userData: this._userData } }));
+    }, 0);
   },
 
   /**

@@ -21,8 +21,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const alertBox = document.getElementById('alert-box');
 
   // Load all data for the super-admin page
-  loadUsers();
-  loadDispensaries();
+  // Use a timeout to ensure this doesn't block the initial UI render
+  setTimeout(() => {
+    loadUsers();
+    loadDispensaries();
+  }, 0);
 
   // Event Listeners
   addUserBtn.addEventListener('click', () => {
