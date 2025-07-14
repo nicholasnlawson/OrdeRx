@@ -1,0 +1,81 @@
+/* Custom styles for the pharmacy supply page */
+
+.supply-functions-container {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Adds space between the buttons */
+}
+
+/* Apply consistent sizing to all buttons */
+.supply-functions-container button {
+    min-width: 150px; /* Set minimum width for all buttons */
+    padding: 8px 16px; /* Consistent padding */
+    height: 40px; /* Fixed height */
+    box-sizing: border-box; /* Include padding and border in the element's size */
+    margin: 0 !important; /* Remove any margin differences */
+    font-size: 14px; /* Consistent font size */
+    white-space: nowrap; /* Prevent text wrapping */
+    text-align: center; /* Center text */
+}
+
+/* Green color for create group button */
+#create-group-btn {
+    background-color: #28a745; /* A standard green color for 'create' actions */
+    border-color: #28a745;
+}
+
+#create-group-btn:hover {
+    background-color: #218838; /* A darker green for hover */
+    border-color: #1e7e34;
+}
+
+/* Ensure cancel button has consistent styling with other buttons */
+#cancel-group-btn {
+    min-width: 150px; /* Match the width of other buttons */
+}
+
+/* Ensure confirm button has consistent styling */
+#confirm-group-btn {
+    min-width: 150px; /* Match the width of other buttons */
+}
+
+/* Specific overrides for supplyFunctions buttons */
+#supplyFunctions {
+    display: flex !important;
+    align-items: center !important;
+    margin-bottom: 10px !important; /* space below buttons before filter controls */
+}
+
+#supplyFunctions button {
+    width: 180px !important;
+    padding: 8px 16px !important;
+    height: 40px !important;
+    box-sizing: border-box !important;
+    margin: 0 !important;
+    font-size: 14px !important;
+    white-space: nowrap !important;
+    text-align: center !important;
+}
+
+#supplyFunctions button + button {
+    margin-left: 10px !important;
+}
+
+/* Remove default left margin for Create Order Group to align with container */
+#supplyFunctions #create-group-btn {
+    margin-left: 0 !important;
+}
+
+/* Ensure Cancel button matches the fixed width */
+#supplyFunctions #confirm-group-btn {
+    margin-left: 0 !important; /* Align to left like the first button */
+}
+
+#supplyFunctions #cancel-group-btn {
+     width: 180px !important;
+ }
+
+/* Ensure dashboard content stacks vertically and respects container width */
+.pharmacy-dashboard {
+  display: block !important;
+}

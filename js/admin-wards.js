@@ -147,6 +147,63 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   /**
+   * Load all dispensaries and display in table
+   */
+  async function loadDispensaries() {
+    try {
+      const response = await window.apiClient.getAllDispensaries();
+      
+      if (response.success) {
+        displayDispensaries(response.dispensaries);
+      } else {
+        showAlert(wardAlertBox, 'Error loading dispensaries', 'error');
+      }
+    } catch (error) {
+      console.error('Error loading dispensaries:', error);
+      showAlert(wardAlertBox, 'Error loading dispensaries: ' + error.message, 'error');
+    }
+  }
+
+  /**
+   * Display dispensaries in the table
+   * @param {Array} dispensaries - List of dispensaries
+   */
+  function displayDispensaries(dispensaries) {
+    const dispensariesTableBody = document.getElementById('dispensaries-table-body');
+    dispensariesTableBody.innerHTML = '';
+    
+    if (dispensaries.length === 0) {
+      const row = document.createElement('tr');
+      row.innerHTML = `<td colspan="4" class="empty-table">No dispensaries found</td>`;
+      dispensariesTableBody.appendChild(row);
+      return;
+    }
+    
+    dispensaries.forEach(dispensary => {
+      const row = document.createElement('tr');
+      
+      row.innerHTML = `
+        <td>${dispensary.name}</td>
+        <td>${dispensary.description || '-'}</td>
+        <td>${dispensary.hospital_name || 'No Hospital'}</td>
+        <td class="actions">
+          <button class="btn btn-sm btn-edit" data-id="${dispensary.id}">Edit</button>
+          <button class="btn btn-sm btn-danger" data-id="${dispensary.id}">Delete</button>
+        </td>
+      `;
+      
+      // Add event listeners to buttons
+      const editBtn = row.querySelector('.btn-edit');
+      const deleteBtn = row.querySelector('.btn-danger');
+      
+      editBtn.addEventListener('click', () => openEditDispensaryModal(dispensary.id));
+      deleteBtn.addEventListener('click', () => openDeleteDispensaryModal(dispensary.id));
+      
+      dispensariesTableBody.appendChild(row);
+    });
+  }
+
+  /**
    * Refresh the hospitals list displayed in the UI (table and dropdown)
    * Convenience wrapper so other code can simply call updateHospitalsList().
    */

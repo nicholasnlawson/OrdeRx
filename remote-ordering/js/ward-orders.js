@@ -1619,6 +1619,13 @@ function closeFilterOrdersModal() {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
+    // Create toast container for notifications
+    createToastContainer();
+
+    // Pre-cache dispensary data for audit trail modal
+    loadAndCacheDispensaries();
+
+    await checkUserRole();
     // Initialize modals
     // Only set up the filter modal event listeners, do not show it on load
     createFilterOrdersModal();
@@ -1635,9 +1642,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         filterOrdersModal.style.display = 'none';
         filterOrdersModal.classList.add('hidden');
     }
-
-    // Create toast container for notifications
-    createToastContainer();
     // Create search orders modal
     createSearchOrdersModal();
     
@@ -3712,7 +3716,7 @@ function createOrderDetailHTML(order) {
     
     // History button is now in the modal footer
     const hasHistoryAccess = window.apiClient && typeof window.apiClient.getOrderHistory === 'function';
-    
+
     return `
         <div class="order-detail-content">
             ${orderInfo}
@@ -3724,43 +3728,25 @@ function createOrderDetailHTML(order) {
 }
 
 /**
- * View order history/audit trail
- * @param {string} orderId - Order ID to view history for
+ * Fetches and displays the audit trail for a given order.
+ * @param {string} orderId - The ID of the order to view history for.
  */
 async function viewOrderHistory(orderId) {
     console.log('[HISTORY] viewOrderHistory called with orderId:', orderId);
-    
     try {
-        // Show loading indicator
         showToastNotification('Loading audit trail...', 'info');
-        
-        // Fetch history
         const response = await window.apiClient.getOrderHistory(orderId);
         console.log('[HISTORY] History response:', response);
-        
+
         if (!response || !response.success) {
             console.error('[HISTORY] Failed to fetch history:', response);
             showToastNotification('Failed to load audit trail: ' + (response?.message || 'Unknown error'), 'error');
             return;
         }
-        
-        // Extract history array from the response
-        // API now returns {success: true, history: [array], pagination: {...}}
+
         const historyArray = response.history && Array.isArray(response.history) ? response.history : [];
         console.log('[HISTORY] Extracted history array:', historyArray);
-        
-        // Log the first history entry for debugging if available
-        if (historyArray.length > 0) {
-            console.log('[HISTORY] First history entry:', historyArray[0]);
-            if (historyArray[0].previousData) {
-                console.log('[HISTORY] First entry has previousData:', historyArray[0].previousData);
-            }
-            if (historyArray[0].newData) {
-                console.log('[HISTORY] First entry has newData:', historyArray[0].newData);
-            }
-        }
-        
-        // Create and show history modal
+
         showHistoryModal(orderId, historyArray);
     } catch (error) {
         console.error('[HISTORY] Error viewing history:', error);
@@ -3972,6 +3958,255 @@ function formatValueForDisplay(value) {
     return String(value);
 }
 
+/**
+ * Get dispensary name from audit data object
+ * @param {Object} dataObj - Data object from audit trail
+ * @returns {string} - Dispensary name or 'Unknown'
+ */
+async function getDispensaryNameById(dispensaryId) {
+    if (!dispensaryId) return 'Unknown';
+    
+    // Try to get from cache first
+    const cachedDispensaries = JSON.parse(sessionStorage.getItem('cachedDispensaries') || '[]');
+    const cached = cachedDispensaries.find(d => d.id.toString() === dispensaryId.toString());
+    if (cached) return cached.name;
+    
+    // If not in cache, fetch from API
+    try {
+        const dispensaries = await fetchDispensaries();
+        if (dispensaries && dispensaries.length > 0) {
+            // Cache for future use
+            sessionStorage.setItem('cachedDispensaries', JSON.stringify(dispensaries));
+            const found = dispensaries.find(d => d.id.toString() === dispensaryId.toString());
+            if (found) return found.name;
+        }
+    } catch (e) {
+        console.error('Error fetching dispensary name:', e);
+    }
+    
+    return `Dispensary ${dispensaryId}`;
+}
+
+/**
+ * Extract dispensary name from audit data object
+ * @param {Object} dataObj - Data object from audit trail
+ * @returns {string} - Dispensary name or 'Unknown'
+ */
+function getDispensaryName(dataObj) {
+    if (!dataObj) return 'Unknown';
+    
+    // Extract dispensaryId from the object
+    const dispensaryId = dataObj.dispensaryId;
+    if (!dispensaryId) return 'Unknown';
+    
+    // Get cached dispensary name if available
+    const cachedDispensaries = JSON.parse(sessionStorage.getItem('cachedDispensaries') || '[]');
+    const dispensary = cachedDispensaries.find(d => d.id.toString() === dispensaryId.toString());
+    
+    return dispensary ? dispensary.name : `Dispensary ${dispensaryId}`;
+}
+
+/**
+ * Fetch dispensaries from the API
+ * @returns {Promise<Array>} - Array of dispensary objects
+ */
+async function fetchDispensaries() {
+    try {
+        // Try the API client first if available
+        if (window.apiClient && typeof window.apiClient.getDispensaries === 'function') {
+            console.log('[DISPENSARY] Using API client to fetch dispensaries');
+            const response = await window.apiClient.getDispensaries();
+            if (response && response.success && Array.isArray(response.dispensaries)) {
+                return response.dispensaries;
+            }
+        }
+        
+        // Fallback to direct fetch
+        console.log('[DISPENSARY] Falling back to direct fetch for dispensaries');
+        const endpoints = [
+            '/api/dispensaries',
+            '/dispensaries'
+        ];
+        
+        // Try each endpoint until one works
+        for (const endpoint of endpoints) {
+            try {
+                // Get the authentication token from localStorage
+                const token = localStorage.getItem('token');
+                
+                // Include the token in the request headers
+                const headers = {
+                    'Content-Type': 'application/json'
+                };
+                
+                if (token) {
+                    headers['Authorization'] = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
+                }
+                
+                const response = await fetch(endpoint, {
+                    headers: headers
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data && Array.isArray(data.dispensaries)) {
+                        return data.dispensaries;
+                    } else if (data && Array.isArray(data)) {
+                        return data;
+                    }
+                }
+            } catch (innerErr) {
+                console.warn(`[DISPENSARY] Failed to fetch from ${endpoint}:`, innerErr);
+                // Continue to next endpoint
+            }
+        }
+        
+        // If all endpoints fail, return empty array
+        console.error('[DISPENSARY] All dispensary endpoints failed');
+        return [];
+    } catch (e) {
+        console.error('[DISPENSARY] Error fetching dispensaries:', e);
+        return [];
+    }
+}
+
+/**
+ * Load dispensaries and cache them for future use
+ * @returns {Promise<Array>} - Array of dispensary objects
+ */
+async function loadAndCacheDispensaries() {
+    try {
+        // Check if we already have dispensaries cached in this session
+        const cachedData = sessionStorage.getItem('cachedDispensaries');
+        if (cachedData) {
+            const dispensaries = JSON.parse(cachedData);
+            if (Array.isArray(dispensaries) && dispensaries.length > 0) {
+                console.log('[DISPENSARY] Using cached dispensaries:', dispensaries.length);
+                return dispensaries;
+            }
+        }
+        
+        // If not cached or empty, fetch from API
+        console.log('[DISPENSARY] Fetching dispensaries from API');
+        const dispensaries = await fetchDispensaries();
+        
+        if (Array.isArray(dispensaries) && dispensaries.length > 0) {
+            // Cache for future use
+            sessionStorage.setItem('cachedDispensaries', JSON.stringify(dispensaries));
+            console.log('[DISPENSARY] Cached dispensaries:', dispensaries.length);
+            return dispensaries;
+        } else {
+            console.warn('[DISPENSARY] No dispensaries returned from API');
+            return [];
+        }
+    } catch (e) {
+        console.error('[DISPENSARY] Error loading dispensaries:', e);
+        return [];
+    }
+}
+
+/**
+ * Extract dispensary name from audit trail entry
+ * @param {Object} entry - Audit trail entry
+ * @returns {string} - Dispensary name or 'Unknown'
+ */
+function getDispensaryNameFromEntry(entry) {
+    if (!entry) return 'Unknown';
+    
+    // Try to get dispensaryId from newData first, then previousData
+    let dispensaryId = null;
+    
+    try {
+        // Check newData (camelCase)
+        if (entry.newData) {
+            let newData;
+            try {
+                newData = typeof entry.newData === 'string' ? 
+                    JSON.parse(entry.newData) : entry.newData;
+                dispensaryId = newData?.dispensaryId;
+                console.log('[LOCATION] Found dispensaryId in newData:', dispensaryId);
+            } catch (e) {
+                console.warn('[LOCATION] Failed to parse newData JSON:', e);
+            }
+        }
+        
+        // If not found, check new_data (snake_case)
+        if (!dispensaryId && entry.new_data) {
+            let newData;
+            try {
+                newData = typeof entry.new_data === 'string' ? 
+                    JSON.parse(entry.new_data) : entry.new_data;
+                dispensaryId = newData?.dispensaryId;
+                console.log('[LOCATION] Found dispensaryId in new_data:', dispensaryId);
+            } catch (e) {
+                console.warn('[LOCATION] Failed to parse new_data JSON:', e);
+            }
+        }
+        
+        // If still not found, check previousData
+        if (!dispensaryId && entry.previousData) {
+            let prevData;
+            try {
+                prevData = typeof entry.previousData === 'string' ? 
+                    JSON.parse(entry.previousData) : entry.previousData;
+                dispensaryId = prevData?.dispensaryId;
+                console.log('[LOCATION] Found dispensaryId in previousData:', dispensaryId);
+            } catch (e) {
+                console.warn('[LOCATION] Failed to parse previousData JSON:', e);
+            }
+        }
+        
+        // If still not found, check previous_data (snake_case)
+        if (!dispensaryId && entry.previous_data) {
+            let prevData;
+            try {
+                prevData = typeof entry.previous_data === 'string' ? 
+                    JSON.parse(entry.previous_data) : entry.previous_data;
+                dispensaryId = prevData?.dispensaryId;
+                console.log('[LOCATION] Found dispensaryId in previous_data:', dispensaryId);
+            } catch (e) {
+                console.warn('[LOCATION] Failed to parse previous_data JSON:', e);
+            }
+        }
+        
+        if (!dispensaryId) {
+            return 'Unknown';
+        }
+        
+        // Get cached dispensary name if available
+        const cachedDispensaries = JSON.parse(sessionStorage.getItem('cachedDispensaries') || '[]');
+        const dispensary = cachedDispensaries.find(d => d.id && d.id.toString() === dispensaryId.toString());
+        
+        if (dispensary && dispensary.name) {
+            return dispensary.name;
+        }
+        
+        // If we couldn't find the name in the cache, try to load fresh dispensaries
+        // We'll return a placeholder for now, but update the UI when data is available
+        const placeholder = `Loading... (ID: ${dispensaryId}`;
+        
+        // Load dispensaries asynchronously and update the display when ready
+        loadAndCacheDispensaries().then(dispensaries => {
+            const foundDispensary = dispensaries.find(d => d.id && d.id.toString() === dispensaryId.toString());
+            if (foundDispensary && foundDispensary.name) {
+                // Find the cell that needs updating
+                const cells = document.querySelectorAll(`td[data-dispensary-id="${dispensaryId}"]`);
+                cells.forEach(cell => {
+                    cell.textContent = foundDispensary.name;
+                    cell.classList.add('updated');
+                });
+            }
+        }).catch(err => {
+            console.error('[DISPENSARY] Error updating dispensary name:', err);
+        });
+        
+        return placeholder;
+    } catch (e) {
+        console.error('Error extracting dispensary name from entry:', e);
+        return 'Unknown';
+    }
+}
+
 function showHistoryModal(orderId, historyData) {
     console.log('[MODAL] Creating history modal for order:', orderId, 'with data:', historyData);
     
@@ -4083,6 +4318,7 @@ function showHistoryModal(orderId, historyData) {
                         <th>Date/Time</th>
                         <th>Action</th>
                         <th>User</th>
+                        <th>Location</th>
                         <th>Reason</th>
                         <th>Details</th>
                     </tr>
@@ -4170,6 +4406,7 @@ function showHistoryModal(orderId, historyData) {
                             <td>${new Date(timestamp).toLocaleString()}</td>
                             <td>${actionDisplay}</td>
                             <td>${modifiedBy}</td>
+                            <td data-dispensary-id="${entry.dispensaryId || ''}">${getDispensaryNameFromEntry(entry)}</td>
                             <td>${reason}</td>
                             <td>
                                 ${previousData || newData ? 
@@ -4267,12 +4504,55 @@ function showHistoryModal(orderId, historyData) {
  * @param {HTMLElement} button - The button that was clicked
  */
 function toggleHistoryDetails(button) {
-    const detailsDiv = button.nextElementSibling;
-    if (detailsDiv.style.display === 'none') {
-        detailsDiv.style.display = 'block';
-        button.textContent = 'Hide Details';
-    } else {
-        detailsDiv.style.display = 'none';
-        button.textContent = 'Show Details';
+    const detailsId = button.getAttribute('data-target');
+    const detailsElement = document.getElementById(detailsId);
+    
+    if (detailsElement) {
+        const isVisible = detailsElement.style.display === 'block';
+        detailsElement.style.display = isVisible ? 'none' : 'block';
+        button.textContent = isVisible ? 'Show Details' : 'Hide Details';
+    }
+}
+
+/**
+ * Checks if the current user has the 'ordering' role.
+ * If not, it unregisters service workers and redirects to the home page.
+ * If authorized, it makes the page content visible.
+ */
+async function checkUserRole() {
+    console.log('[RBAC] Performing role check for ward orders page.');
+    try {
+        const userData = AuthUtils.getUserData();
+        const userRoles = userData ? userData.roles : [];
+
+        if (!userRoles.includes('ordering')) {
+            console.warn('[RBAC] Access Denied: User does not have the required \'ordering\' role. Roles:', userRoles);
+            showToastNotification('Access Denied. Redirecting...', 'error');
+
+            // Unregister service workers to prevent caching issues with redirects
+            if ('serviceWorker' in navigator) {
+                try {
+                    const registrations = await navigator.serviceWorker.getRegistrations();
+                    for (const registration of registrations) {
+                        await registration.unregister();
+                        console.log('[RBAC] Service worker unregistered successfully.');
+                    }
+                } catch (err) {
+                    console.error('[RBAC] Service worker unregistration failed:', err);
+                }
+            }
+
+            // Redirect to home page with an unauthorized reason
+            window.location.href = '/home.html?reason=unauthorized';
+        } else {
+            console.log('[RBAC] Access Granted: User has the \'ordering\' role.');
+            // Make the body visible now that the user is authorized
+            document.body.style.visibility = 'visible';
+        }
+    } catch (error) {
+        console.error('[RBAC] Error during role check:', error);
+        // Fallback: redirect if an error occurs, to be safe
+        document.body.style.visibility = 'visible'; // Show body to display error message if any
+        showToastNotification('Error during authentication check. Please try again.', 'error');
     }
 }

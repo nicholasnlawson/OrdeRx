@@ -5,8 +5,10 @@
 
 class ApiClient {
   constructor() {
-    // API base URL - change this to match your server configuration
-    this.baseUrl = '/api';
+    // API base URL with auto-detection based on current host
+    const host = window.location.origin.trim(); // Gets the protocol, hostname, and port, and removes any whitespace
+    this.baseUrl = `${host}/api`;
+    console.log('API Client initialized with baseUrl:', this.baseUrl);
     this.token = localStorage.getItem('token');
   }
 
@@ -45,39 +47,61 @@ class ApiClient {
    * @returns {Promise} - Promise resolving to response data
    */
   async request(endpoint, method = 'GET', body = null) {
-    // Build full URL intelligently to avoid double /api prefix
-let url;
-if (endpoint.startsWith('http')) {
-  url = endpoint; // Absolute URL provided
-} else if (endpoint.startsWith('/api/')) {
-  // Endpoint already includes /api prefix – use as-is
-  url = endpoint;
-} else {
-  // Prepend base URL (default '/api')
-  url = `${this.baseUrl}${endpoint.startsWith('/') ? '' : '/'}${endpoint}`;
-}
-    const options = {
-      method,
-      headers: this.getHeaders()
-    };
-
-    if (body && (method === 'POST' || method === 'PUT')) {
-      options.body = JSON.stringify(body);
-    }
-
     try {
-      const response = await fetch(url, options);
-      let data = null;
-      if (response.status !== 204) {
+      const url = `${this.baseUrl}${endpoint}`;
+      const headers = this.getHeaders();
+      
+      if (this.token) {
+        // Ensure the token doesn't already have the 'Bearer ' prefix
+      const token = this.token.startsWith('Bearer ') ? this.token.split(' ')[1] : this.token;
+      headers['Authorization'] = `Bearer ${token}`;
+      }
+      
+      const config = { method, headers };
+      
+      if (body) {
+        config.body = JSON.stringify(body);
+      }
+      
+      console.log(`API request to: ${url}`, { method, hasAuth: !!this.token });
+      
+      const response = await fetch(url, config);
+      let data = {};
+      
+      // Try to parse JSON response if available
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
         data = await response.json();
       }
-
+      
+      console.log(`API response from ${endpoint}:`, { status: response.status, data });
+      
       // Handle 401 Unauthorized errors
       if (response.status === 401) {
-        // Clear token and redirect to login
+        // For user admin page permission issues, show a more specific message
+        if (endpoint.includes('/users') && window.location.pathname.includes('/admin')) {
+          console.log('Admin resource access denied, redirecting to home page');
+          window.location.href = '/home.html?reason=admin_access_denied';
+          throw new Error('Access denied to admin resources');
+        }
+        
+        // For other 401 errors, handle as session expiry
         this.logout();
-        window.location.href = '/login.html';
+        window.location.href = '/login.html?reason=session_expired';
         throw new Error('Session expired. Please log in again.');
+      }
+      
+      // Handle 403 Forbidden errors (insufficient permissions)
+      if (response.status === 403) {
+        // For admin page resource access
+        if (endpoint.includes('/users') && window.location.pathname.includes('/admin')) {
+          console.log('Admin resource permission denied, redirecting to home page');
+          window.location.href = '/home.html?reason=insufficient_permissions';
+          throw new Error('Insufficient permissions to access admin resources');
+        }
+        
+        // For other permission errors
+        throw new Error(data.message || 'You do not have permission to access this resource');
       }
 
       if (!response.ok) {
@@ -89,7 +113,24 @@ if (endpoint.startsWith('http')) {
 
       return data;
     } catch (error) {
-      console.error(`API Error (${endpoint}):`, error);
+      console.error('API Error (' + endpoint + '):', error);
+      
+      // If this is a network error (Failed to fetch), provide more context
+      if (error.message && error.message.includes('Failed to fetch')) {
+        console.warn('Network error detected. Possible causes: server not running, incorrect port, or CORS issue');
+        console.warn('Ensure the server is running at the expected URL and CORS is properly configured');
+        
+        // Only redirect for admin-specific resources to prevent login loops
+        if (endpoint.includes('/users') && window.location.pathname.includes('/admin')) {
+          // Stay on the page but show a more helpful error message
+          const adminErrorDiv = document.getElementById('admin-api-error') || document.createElement('div');
+          adminErrorDiv.id = 'admin-api-error';
+          adminErrorDiv.style = 'position:fixed; top:10px; left:50%; transform:translateX(-50%); background-color:#f8d7da; color:#721c24; padding:10px; border-radius:5px; z-index:9999; text-align:center;';
+          adminErrorDiv.innerHTML = `<strong>API Connection Error</strong><br>Cannot connect to the API server. Check that the server is running.`;
+          document.body.appendChild(adminErrorDiv);
+        }
+      }
+      
       throw error;
     }
   }
@@ -190,9 +231,9 @@ if (endpoint.startsWith('http')) {
    * @returns {Promise} - Promise resolving to user profile data
    */
   async getProfile() {
-    return await this.request('/auth/profile');
+    return await this.request('/users/profile');
   }
-
+  
   /**
    * Get all users (admin only)
    * @returns {Promise} - Promise resolving to users list
@@ -413,7 +454,15 @@ if (endpoint.startsWith('http')) {
    * @returns {Promise} - Promise resolving to wards list
    */
   async getAllWards() {
-    return await this.request('/wards');
+    return await this.request('/wards', 'GET');
+  }
+
+  /**
+   * Get all dispensaries
+   * @returns {Promise} - Promise resolving to dispensaries list
+   */
+  async getDispensaries() {
+    return await this.request('/dispensaries', 'GET');
   }
 
   /**

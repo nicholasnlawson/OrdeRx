@@ -1,9 +1,17 @@
 /**
- * Admin Panel JavaScript
- * Handles user management functionality
+ * User Admin Panel JavaScript
+ * Handles user management functionality for user-admins
  */
 
 document.addEventListener('DOMContentLoaded', () => {
+
+  // Check if the user is at least a user-admin. This is a client-side safeguard.
+  // The server will enforce the final rules.
+  if (!AuthUtils.hasAnyAdminRole()) {
+      console.log('Redirecting, not an admin.');
+      window.location.href = '/home.html?reason=unauthorized';
+      return;
+  }
 
   // Additional check - only super-admin users can modify other users' roles to super-admin
   const canManageSuperAdmin = AuthUtils.hasRole('super-admin');
@@ -20,40 +28,39 @@ document.addEventListener('DOMContentLoaded', () => {
   const statusGroup = document.getElementById('status-group');
   const alertBox = document.getElementById('alert-box');
 
-  // Load all data for the super-admin page
+  // Load users on page load
   loadUsers();
-  loadDispensaries();
 
   // Event Listeners
   addUserBtn.addEventListener('click', () => {
     openUserModal();
   });
-  
+
   // Close modals when clicking on close buttons or cancel buttons
   document.querySelectorAll('.close-btn, .close-modal').forEach(element => {
     element.addEventListener('click', () => {
       closeModals();
     });
   });
-  
+
   // Handle user form submission
   userForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    
+
     const userId = document.getElementById('user-id').value;
     const isEditMode = !!userId;
-    
+
     // Password validation
     const password = document.getElementById('password').value;
     const confirmPassword = document.getElementById('confirm-password').value;
-    
+
     // Check if super-admin role is being assigned by non-super-admin user
     const superAdminCheckbox = document.querySelector('input[value="super-admin"]');
     if (superAdminCheckbox && superAdminCheckbox.checked && !canManageSuperAdmin) {
       showAlert('You do not have permission to assign super-admin role', 'error');
       return;
     }
-    
+
     // In edit mode, both password fields can be empty to keep current password
     // Otherwise, ensure passwords match if either field has a value
     if (password || confirmPassword || !isEditMode) {
@@ -62,7 +69,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
     }
-    
+
     // Get form values
     const userData = {
       username: document.getElementById('username').value,
@@ -73,18 +80,18 @@ document.addEventListener('DOMContentLoaded', () => {
       roles: Array.from(document.querySelectorAll('input[name="roles"]:checked'))
         .map(checkbox => checkbox.value)
     };
-    
+
     // Add is_active status for edit mode
     if (isEditMode) {
       const isActiveEl = document.querySelector('input[name="is_active"]:checked');
       userData.is_active = isActiveEl ? parseInt(isActiveEl.value) : 1;
-      
+
       // If password is empty in edit mode, delete the property
       if (!userData.password) {
         delete userData.password;
       }
     }
-    
+
     try {
       if (isEditMode) {
         // Update existing user
@@ -95,7 +102,7 @@ document.addEventListener('DOMContentLoaded', () => {
         await apiClient.createUser(userData);
         showAlert('User created successfully', 'success');
       }
-      
+
       // Close modal and reload users
       closeModals();
       loadUsers();
@@ -103,11 +110,11 @@ document.addEventListener('DOMContentLoaded', () => {
       showAlert(`Error: ${error.message}`, 'error');
     }
   });
-  
+
   // Handle delete confirmation
   document.getElementById('confirm-delete-btn').addEventListener('click', async () => {
     const userId = document.getElementById('delete-user-id').value;
-    
+
     try {
       await apiClient.deleteUser(userId);
       showAlert('User deleted successfully', 'success');
@@ -117,25 +124,17 @@ document.addEventListener('DOMContentLoaded', () => {
       showAlert(`Error: ${error.message}`, 'error');
     }
   });
-  
+
   // Handle logout buttons
-  const logoutBtn = document.getElementById('logout-btn');
   const logoutLink = document.getElementById('logout-link');
-  
-  if (logoutBtn) {
-    logoutBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      AuthUtils.logout();
-    });
-  }
-  
+
   if (logoutLink) {
     logoutLink.addEventListener('click', (e) => {
       e.preventDefault();
       AuthUtils.logout();
     });
   }
-  
+
   /**
    * Load all users from the API
    */
@@ -144,36 +143,36 @@ document.addEventListener('DOMContentLoaded', () => {
       console.log('Loading users from API...');
       const response = await apiClient.getUsers();
       console.log('API response:', response);
-      
+
       if (!response || !response.users) {
         console.error('Invalid API response format:', response);
         showAlert('Error: Invalid API response format', 'error');
         return;
       }
-      
+
       const users = response.users;
       console.log('Users loaded successfully:', users.length, 'users');
-      
+
       // Clear existing table rows
       userTableBody.innerHTML = '';
-      
+
       // Add user rows
       users.forEach(user => {
         const row = document.createElement('tr');
-        
+
         // Format roles as badges
-        const rolesBadges = user.roles.map(role => 
+        const rolesBadges = user.roles.map(role =>
           `<span class="user-role role-${role}">${role}</span>`
         ).join(' ');
-        
+
         // Format date
         const lastLogin = user.last_login ? new Date(user.last_login).toLocaleString() : 'Never';
-        
+
         // Format status
-        const status = user.is_active 
-          ? '<span class="user-status status-active">Active</span>' 
+        const status = user.is_active
+          ? '<span class="user-status status-active">Active</span>'
           : '<span class="user-status status-inactive">Inactive</span>';
-        
+
         row.innerHTML = `
           <td>${user.username}</td>
           <td>${user.first_name || ''} ${user.surname || ''}</td>
@@ -198,10 +197,10 @@ document.addEventListener('DOMContentLoaded', () => {
             </button>
           </td>
         `;
-        
+
         userTableBody.appendChild(row);
       });
-      
+
       // Add event listeners to edit and delete buttons
       document.querySelectorAll('.edit-btn').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -209,7 +208,7 @@ document.addEventListener('DOMContentLoaded', () => {
           openUserModal(userId);
         });
       });
-      
+
       document.querySelectorAll('.delete-btn').forEach(btn => {
         btn.addEventListener('click', () => {
           const userId = btn.getAttribute('data-id');
@@ -220,7 +219,7 @@ document.addEventListener('DOMContentLoaded', () => {
       showAlert(`Error loading users: ${error.message}`, 'error');
     }
   }
-  
+
   /**
    * Open user modal for adding or editing a user
    * @param {string|null} userId - User ID for editing, null for adding
@@ -229,40 +228,40 @@ document.addEventListener('DOMContentLoaded', () => {
     // Reset form
     userForm.reset();
     document.getElementById('user-id').value = '';
-    
+
     if (userId) {
       // Edit mode
       try {
         const response = await apiClient.getUser(userId);
         const user = response.user;
-        
+
         // Set form values
         document.getElementById('user-id').value = user.id;
         document.getElementById('username').value = user.username;
         document.getElementById('first_name').value = user.first_name || '';
         document.getElementById('surname').value = user.surname || '';
         document.getElementById('email').value = user.email;
-        
+
         // Uncheck all role checkboxes first
         document.querySelectorAll('input[name="roles"]').forEach(checkbox => {
           checkbox.checked = false;
         });
-        
+
         // Check the appropriate roles
         user.roles.forEach(role => {
           const checkbox = document.querySelector(`input[value="${role}"]`);
           if (checkbox) checkbox.checked = true;
         });
-        
+
         // Show active/inactive option and set it
         statusGroup.style.display = 'block';
         const statusRadio = document.querySelector(`input[name="is_active"][value="${user.is_active ? 1 : 0}"]`);
         if (statusRadio) statusRadio.checked = true;
-        
+
         // Show password help text for edit mode
         passwordField.required = false;
         passwordHelp.style.display = 'block';
-        
+
         modalTitle.textContent = 'Edit User';
       } catch (error) {
         showAlert(`Error loading user data: ${error.message}`, 'error');
@@ -275,10 +274,10 @@ document.addEventListener('DOMContentLoaded', () => {
       passwordHelp.style.display = 'none';
       statusGroup.style.display = 'none';
     }
-    
+
     userModal.classList.add('active');
   }
-  
+
   /**
    * Open delete confirmation modal
    * @param {string} userId - ID of user to delete
@@ -287,7 +286,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('delete-user-id').value = userId;
     deleteModal.classList.add('active');
   }
-  
+
   /**
    * Close all modals
    */
@@ -295,7 +294,7 @@ document.addEventListener('DOMContentLoaded', () => {
     userModal.classList.remove('active');
     deleteModal.classList.remove('active');
   }
-  
+
   /**
    * Show alert message
    * @param {string} message - Alert message
@@ -304,7 +303,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function showAlert(message, type) {
     alertBox.textContent = message;
     alertBox.className = 'alert show alert-' + type;
-    
+
     // Auto-hide after 5 seconds
     setTimeout(() => {
       alertBox.classList.remove('show');

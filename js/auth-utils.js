@@ -3,6 +3,35 @@
  */
 
 const AuthUtils = {
+  _userData: null,
+  _dataLoaded: false,
+
+  /**
+   * Initialize AuthUtils, load user data, and dispatch ready event.
+   */
+  init() {
+    if (this._dataLoaded) return;
+
+    try {
+      const encryptedData = localStorage.getItem('userData');
+      if (encryptedData) {
+        const decryptedData = this.decryptData(encryptedData);
+        if (decryptedData) {
+          this._userData = JSON.parse(decryptedData);
+        }
+      }
+    } catch (error) {
+      console.error('Error initializing AuthUtils:', error);
+      this._userData = null;
+    }
+    
+    this._dataLoaded = true;
+    // Use a timeout to ensure the event is dispatched after the main thread is less busy
+    setTimeout(() => {
+        document.dispatchEvent(new CustomEvent('authDataReady', { detail: { userData: this._userData } }));
+    }, 0);
+  },
+
   /**
    * Check if user is authenticated
    * @returns {boolean} - True if authenticated, false otherwise
@@ -12,26 +41,19 @@ const AuthUtils = {
   },
 
   /**
-   * Get user data from localStorage
+   * Get user data from the cached property.
    * @returns {Object|null} - User data object or null if not available
    */
   getUserData() {
-    try {
-      const userData = localStorage.getItem('userData');
-      if (!userData) return null;
-      
-      const decryptedData = this.decryptData(userData);
-      if (!decryptedData) return null;
-      
-      return JSON.parse(decryptedData);
-    } catch (error) {
-      console.error('Error getting user data:', error);
-      return null;
+    if (!this._dataLoaded) {
+      console.warn('AuthUtils.getUserData() called before init(). This may lead to race conditions.');
+      this.init(); // Fallback to ensure data is loaded
     }
+    return this._userData;
   },
-  
+
   /**
-   * Update user data in localStorage
+   * Update user data in localStorage and the local cache.
    * @param {Object} userData - Updated user data
    * @returns {boolean} - True if successful, false otherwise
    */
@@ -39,12 +61,12 @@ const AuthUtils = {
     try {
       if (!userData) return false;
       
-      // Convert to string and encrypt
+      this._userData = userData; // Update local cache
+
       const userDataStr = JSON.stringify(userData);
       const encryptionKey = 'pharmacy-secure-key-change-in-production';
       const encryptedData = CryptoJS.AES.encrypt(userDataStr, encryptionKey).toString();
       
-      // Store in localStorage
       localStorage.setItem('userData', encryptedData);
       return true;
     } catch (error) {
@@ -60,9 +82,7 @@ const AuthUtils = {
    */
   hasRole(role) {
     const userData = this.getUserData();
-    if (!userData || !userData.roles) return false;
-    
-    return userData.roles.includes(role);
+    return !!(userData && userData.roles && userData.roles.includes(role));
   },
 
   /**
@@ -74,7 +94,13 @@ const AuthUtils = {
     if (!userData || !userData.roles) return false;
     
     const adminRoles = ['user-admin', 'super-admin'];
-    return adminRoles.some(role => userData.roles.includes(role));
+    
+    // Convert both arrays to lowercase for case-insensitive comparison
+    const userRolesLower = userData.roles.map(r => typeof r === 'string' ? r.toLowerCase() : r);
+    const adminRolesLower = adminRoles.map(r => r.toLowerCase());
+    
+    // Check if any admin role exists in user roles (case-insensitive)
+    return adminRolesLower.some(role => userRolesLower.includes(role));
   },
 
   /**
@@ -82,10 +108,7 @@ const AuthUtils = {
    * @returns {boolean} - True if user has full admin access, false otherwise
    */
   hasFullAdminAccess() {
-    const userData = this.getUserData();
-    if (!userData || !userData.roles) return false;
-    
-    return userData.roles.includes('super-admin');
+    return this.hasRole('super-admin');
   },
 
   /**
@@ -95,10 +118,7 @@ const AuthUtils = {
    */
   decryptData(encryptedData) {
     try {
-      // Use the same key as encryption
       const encryptionKey = 'pharmacy-secure-key-change-in-production';
-      
-      // Use CryptoJS for decryption
       const decrypted = CryptoJS.AES.decrypt(encryptedData, encryptionKey).toString(CryptoJS.enc.Utf8);
       return decrypted;
     } catch (error) {
@@ -113,6 +133,11 @@ const AuthUtils = {
   logout() {
     localStorage.removeItem('token');
     localStorage.removeItem('userData');
+    this._userData = null;
+    this._dataLoaded = false;
     window.location.href = '/login.html';
   }
 };
+
+// Initialize AuthUtils as soon as the script is loaded.
+AuthUtils.init();

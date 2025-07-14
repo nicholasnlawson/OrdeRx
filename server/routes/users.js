@@ -5,10 +5,8 @@ const { db } = require('../db/init');
 const { verifyToken, hasRole, hasAdminAccess, hasFullAdminAccess } = require('../middleware/auth');
 
 // Apply authentication middleware to all routes
-router.use(verifyToken);
-
 // Get all users (any admin role)
-router.get('/', hasAdminAccess(), (req, res) => {
+router.get('/', verifyToken, hasAdminAccess(), (req, res) => {
   db.all(
     `SELECT u.id, u.username, u.email, u.first_name, u.surname, u.created_at, u.last_login, u.is_active
      FROM users u
@@ -57,7 +55,7 @@ router.get('/', hasAdminAccess(), (req, res) => {
 });
 
 // Get specific user by ID (any admin role)
-router.get('/:id', hasAdminAccess(), (req, res) => {
+router.get('/:id', verifyToken, hasAdminAccess(), (req, res) => {
   const userId = req.params.id;
   
   db.get(
@@ -102,7 +100,7 @@ router.get('/:id', hasAdminAccess(), (req, res) => {
 });
 
 // Update user (any admin role)
-router.put('/:id', hasAdminAccess(), async (req, res) => {
+router.put('/:id', verifyToken, hasAdminAccess(), async (req, res) => {
   const userId = req.params.id;
   const { username, email, password, roles, is_active, first_name, surname } = req.body;
   
@@ -315,7 +313,7 @@ router.put('/:id', hasAdminAccess(), async (req, res) => {
 });
 
 // Delete user (any admin role)
-router.delete('/:id', hasAdminAccess(), (req, res) => {
+router.delete('/:id', verifyToken, hasAdminAccess(), (req, res) => {
   const userId = req.params.id;
   
   // Prevent deleting yourself

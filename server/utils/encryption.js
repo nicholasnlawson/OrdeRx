@@ -56,19 +56,30 @@ function encrypt(text) {
  */
 function decrypt(encryptedText) {
   if (!encryptedText) return null;
-  
+
+  // A simple check to see if the text is likely base64-encoded ciphertext.
+  // Plaintext won't typically contain only these characters or be padded with '='.
+  const isLikelyEncrypted = /^[A-Za-z0-9+/=]+$/.test(encryptedText);
+
+  if (!isLikelyEncrypted) {
+    // If it doesn't look like our encrypted data, assume it's plaintext.
+    return encryptedText;
+  }
+
   try {
     const iv = Buffer.from(ENCRYPTION_IV, 'utf8');
     const key = Buffer.from(ENCRYPTION_KEY, 'utf8');
     const decipher = crypto.createDecipheriv(ALGORITHM, key, iv);
-    
+
     let decrypted = decipher.update(encryptedText, 'base64', 'utf8');
     decrypted += decipher.final('utf8');
-    
+
     return decrypted;
   } catch (error) {
-    logger.error('Decryption error:', error);
-    throw new Error('Failed to decrypt data');
+    // If decryption fails (e.g., 'wrong final block length'), it's not valid ciphertext.
+    // Log a warning and return the original text to prevent crashes.
+    logger.warn(`Decryption failed for a value that appeared to be encrypted. Returning original text. Error: ${error.message}`);
+    return encryptedText; // Return the original text as a fallback.
   }
 }
 

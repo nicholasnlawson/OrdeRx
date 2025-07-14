@@ -1,5 +1,44 @@
 /* UK Hospital Pharmacy Labelling System Styles */
 
+/* Modal styles */
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 1000; /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 15% auto; /* 15% from the top and centered */
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%; /* Could be more or less, depending on screen size */
+    max-width: 500px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
+    position: relative;
+}
+
+.close-button {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close-button:hover,
+.close-button:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
 :root {
     --nhs-blue: #005eb8;
     --nhs-dark-blue: #003087;
@@ -26,6 +65,13 @@ body {
     background-color: var(--nhs-light-grey);
     color: var(--nhs-black);
     line-height: 1.5;
+}
+
+/* Hide role-based nav links by default to prevent flicker */
+.main-nav a[href*="ward"],
+.main-nav a[href*="pharmacy"],
+.main-nav a[href*="admin"] {
+  display: none;
 }
 
 header {
@@ -979,21 +1025,6 @@ button[type="reset"]:hover {
     
     .print-label .label-number {
         background-color: #f8f9fa !important;
-        padding: 2px 6px !important;
-        border-radius: 3px !important;
-        border: 1px solid #dee2e6 !important;
-    }
-    
-    /* Empty label placeholders */
-    .print-label.empty-label {
-        visibility: hidden !important;
-        border: none !important;
-        background: transparent !important;
-    }
-    
-    /* Hide the preview label */
-    .uk-label:not(.print-label) {
-        display: none !important;
     }
     
     /* Hide everything else */
@@ -1004,4 +1035,58 @@ button[type="reset"]:hover {
         width: 100% !important;
         height: 100% !important;
     }
+}
+
+/* Home Page Styles */
+.welcome-section {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.module-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+.card {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 1.5rem;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+}
+
+.card h3 {
+    color: #005eb8;
+    margin-top: 0;
+}
+
+.card-link {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+}
+
+.welcome-banner {
+    background: #005eb8;
+    color: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+}
+
+.welcome-banner h2 {
+    margin-top: 0;
+}
+
+.user-greeting {
+    font-weight: bold;
 }

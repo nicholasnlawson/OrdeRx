@@ -23,8 +23,8 @@
     "winston-daily-rotate-file": "^4.7.1"
   },
   "devDependencies": {
-    "chai": "^5.2.0",
-    "mocha": "^11.6.0",
+    "chai": "^5.2.1",
+    "mocha": "^11.7.1",
     "node-fetch": "^2.7.0",
     "nodemon": "^3.1.10",
     "sinon": "^21.0.0"

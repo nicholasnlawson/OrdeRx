@@ -161,15 +161,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Set email field to current email as default
     document.getElementById('email').value = userData.email || '';
     
-    // Update visibility of admin link
-    const adminLink = document.getElementById('admin-nav-link');
-    if (adminLink) {
-      if (AuthUtils.hasRole('admin')) {
-        adminLink.style.display = 'inline-block';
-      } else {
-        adminLink.style.display = 'none';
-      }
-    }
+
   }
   
   /**

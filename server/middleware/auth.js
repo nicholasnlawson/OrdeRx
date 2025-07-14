@@ -4,7 +4,18 @@ require('dotenv').config();
 
 // Middleware to verify JWT token
 const verifyToken = (req, res, next) => {
-  const token = req.header('Authorization')?.split(' ')[1];
+  const authHeader = req.header('Authorization');
+  console.log('Authorization Header:', authHeader); // Debug: Log the full auth header
+
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    logger.logSecurityEvent('ANONYMOUS', 'MISSING_OR_MALFORMED_TOKEN', { 
+      path: req.path, 
+      method: req.method 
+    }, req.headers['x-forwarded-for'] || req.socket.remoteAddress);
+    return res.status(401).json({ error: 'Access denied. No token provided or malformed.' });
+  }
+
+  const token = authHeader.split(' ')[1];
   const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
 
   if (!token) {

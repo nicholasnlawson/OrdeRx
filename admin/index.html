@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="../css/admin.css" />
     <link rel="stylesheet" href="../remote-ordering/css/audit-trail.css" />
     <link rel="icon" href="../favicon_io/favicon.ico" type="image/x-icon" />
+    <script src="../js/vendor/crypto-js.min.js"></script>
   </head>
   <body>
     <nav class="main-nav">
@@ -528,13 +529,18 @@
       </div>
     </div>
 
-    <script src="../js/lib/crypto-js.js"></script>
+    <!-- Core Libraries -->
+    <script src="../js/vendor/crypto-js.min.js"></script>
     <script src="../js/auth-utils.js"></script>
     <script src="../js/api-client.js"></script>
+    <script src="../js/common.js"></script>
+
+    <!-- Page-specific Scripts -->
     <script src="../js/nav-controller.js"></script>
-    <script src="../js/admin.js"></script>
     <script src="../js/admin-wards.js"></script>
     <script src="../js/admin-dispensaries.js"></script>
+    <script src="../js/admin-dispensaries-loader.js"></script>
+    <script src="../js/admin.js"></script>
     <script src="../js/admin-navigation.js"></script>
   </body>
 </html>

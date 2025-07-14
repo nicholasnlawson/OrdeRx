@@ -37,7 +37,7 @@ app.use(helmet.contentSecurityPolicy({
   directives: {
     defaultSrc: ["'self'"],
     scriptSrc: ["'self'", "'unsafe-inline'"], // Required for some functionality
-    styleSrc: ["'self'", "'unsafe-inline'"],
+    styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"], // Allow inline styles and Google Fonts
     imgSrc: ["'self'", 'data:'],
     connectSrc: allowedConnectSrc,
     fontSrc: ["'self'"],

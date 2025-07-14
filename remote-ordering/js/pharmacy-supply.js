@@ -799,34 +799,88 @@ function handleGroupCreationError(error) {
 /**
  * Toggles group selection mode on/off
  */
-function toggleGroupSelectionMode() {
-    groupSelectionMode = !groupSelectionMode;
-    loadOrders();
-    const createGroupBtn = document.getElementById('create-group-btn');
-    const confirmGroupBtn = document.getElementById('confirm-group-btn');
-    const selectAllContainer = document.getElementById('select-all-container');
+function toggleGroupSelectionMode(forceState) {
+    // If forceState is a boolean, use it; otherwise, toggle the current state.
+    groupSelectionMode = typeof forceState === 'boolean' ? forceState : !groupSelectionMode;
+
+    const createBtn = document.getElementById('create-group-btn');
+    const viewGroupsBtn = document.getElementById('view-order-groups-btn');
+    const confirmBtn = document.getElementById('confirm-group-btn');
+    const cancelBtn = document.getElementById('cancel-group-btn');
+
     if (groupSelectionMode) {
-        if (createGroupBtn) {
-            createGroupBtn.textContent = 'Cancel Grouping';
-            createGroupBtn.classList.add('active');
-        }
-        if (confirmGroupBtn) confirmGroupBtn.classList.remove('hidden');
-        if (selectAllContainer) selectAllContainer.classList.remove('hidden');
+        // Entering selection mode
+        if (createBtn) createBtn.style.display = 'none';
+        if (viewGroupsBtn) viewGroupsBtn.style.display = 'none';
+        if (confirmBtn) confirmBtn.style.display = 'inline-block';
+        if (cancelBtn) cancelBtn.style.display = 'inline-block';
     } else {
-        if (createGroupBtn) {
-            createGroupBtn.textContent = 'Create Order Group';
-            createGroupBtn.classList.remove('active');
+        // Exiting selection mode
+        if (createBtn) createBtn.style.display = 'inline-block';
+        if (viewGroupsBtn) viewGroupsBtn.style.display = 'inline-block';
+        if (confirmBtn) confirmBtn.style.display = 'none';
+        if (cancelBtn) cancelBtn.style.display = 'none';
+    }
+
+    // Re-render orders to show/hide checkboxes
+    applyFiltersAndRender();
+}
+
+/**
+ * Checks if the current user has the 'pharmacy' role.
+ * If not, redirects them to the home page.
+ */
+async function checkUserRole() {
+    // Use the standard AuthUtils to get user data
+    if (typeof AuthUtils !== 'undefined') {
+        const user = AuthUtils.getUserData();
+        console.log('Checking user profile for pharmacy page access:', user);
+
+        // If user data is available and roles are defined
+        if (user && user.roles) {
+            // Check if 'pharmacy' role is included
+            if (!user.roles.includes('pharmacy')) {
+                console.log('Pharmacy Auth Check Failed: User does not have pharmacy role.');
+                // Unregister service worker to prevent caching issues with redirect
+                if ('serviceWorker' in navigator) {
+                  console.log('Attempting to unregister service worker...');
+                  navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                    for(let registration of registrations) {
+                      registration.unregister();
+                    }
+                    console.log('Service worker unregistered. Redirecting...');
+                    window.location.href = '/home.html?reason=unauthorized';
+                  }).catch(function(err) {
+                    console.error('Service worker unregistration failed: ', err);
+                    window.location.href = '/home.html?reason=unauthorized';
+                  });
+                } else {
+                    console.log('Service worker not supported. Redirecting...');
+                    window.location.href = '/home.html?reason=unauthorized';
+                }
+            } else {
+                // User is authorized, make the page visible
+                document.body.style.visibility = 'visible';
+            }
+        } else {
+            // If user data or roles are not available, deny access as a security precaution
+            window.location.href = '/home.html?reason=unauthorized';
         }
-        if (confirmGroupBtn) confirmGroupBtn.classList.add('hidden');
-        if (selectAllContainer) selectAllContainer.classList.add('hidden');
+    } else {
+        // If auth utilities are not available, deny access
+        console.error('Auth utilities are not available.');
+        window.location.href = '/home.html?reason=unauthorized';
     }
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
+    // FIRST: Check user role to ensure only pharmacy users can access this page
+    await checkUserRole();
+
     // Ensure dispensary is selected before any other operations
     await ensureDispensarySelected();
     console.log('Dispensary initialized with ID:', selectedDispensaryId);
-    
+
     // Add the animation class to the container on load
     const ordersList = document.getElementById('orders-list');
     if (ordersList) {
@@ -839,7 +893,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         modal.classList.add('hidden');
         modal.style.display = 'none';
     });
-    
+
+    // Set initial state for group selection buttons
+    toggleGroupSelectionMode(false);
+
     // Initialize order groups button
     const orderGroupsBtn = document.getElementById('view-order-groups-btn');
     if (orderGroupsBtn) {
@@ -849,7 +906,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             displayOrderGroupsModal(false, true);
         });
     }
-    
+
     // Initialize modal close buttons for order groups modal
     const orderGroupsModal = document.getElementById('order-groups-modal');
     if (orderGroupsModal) {
@@ -870,14 +927,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         });
     }
-    
+
     // Initialize modal close buttons for change status modal
     const changeStatusModal = document.getElementById('change-status-modal');
     if (changeStatusModal) {
         // Force hide the modal on load
         changeStatusModal.classList.add('hidden');
         changeStatusModal.style.display = 'none';
-        
+
         const closeButtons = changeStatusModal.querySelectorAll('.modal-close, .modal-close-btn');
         closeButtons.forEach(button => {
             button.addEventListener('click', function() {
@@ -885,7 +942,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 changeStatusModal.style.display = 'none';
             });
         });
-        
+
         // Add escape key handler for this modal
         document.addEventListener('keydown', function(event) {
             if (event.key === 'Escape' && !changeStatusModal.classList.contains('hidden')) {
@@ -894,68 +951,24 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         });
     }
-    
-    // Initialize order management
-    initializeOrderFilters();
-    console.log('Order Manager initialized with 0 orders');
 
-    // Reset the initial page load flag after a delay
-    setTimeout(() => {
-        window.isInitialPageLoad = false;
-        console.log('Initial page load flag reset - modals can now be shown normally');
-    }, 1500);
-    
-    // Add Supply Functions section
-    const supplyFunctions = document.createElement('div');
-    supplyFunctions.className = 'supply-functions-section';
-    supplyFunctions.innerHTML = `
-        <h2>Supply Functions</h2>
-        <div class="button-group">
-            <button id="create-group-btn" class="secondary-btn small-btn">Create Order Group</button>
-            <button id="confirm-group-btn" class="primary-btn small-btn hidden">Confirm Order Group</button>
-            <button id="view-order-groups-btn" class="secondary-btn small-btn">View Order Groups</button>
-        </div>
-    `;
-    
     // Find the appropriate containers
     const recentOrdersSection = document.querySelector('.recent-orders');
     const pharmacyDashboard = document.querySelector('.pharmacy-dashboard');
     const mainContainer = document.querySelector('.main-content') || document.querySelector('.container') || document.body;
-    
-    // Insert the supply functions above the incoming orders section
-    if (recentOrdersSection && recentOrdersSection.parentNode) {
-        // Insert before recent orders section (which contains the incoming orders)
-        recentOrdersSection.parentNode.insertBefore(supplyFunctions, recentOrdersSection);
+
+    // Place the supply functions INSIDE the recent-orders section as its first child
+    if (recentOrdersSection) {
+        recentOrdersSection.prepend(supplyFunctions);
     } else if (pharmacyDashboard) {
-        // If we can't find recent-orders but can find the dashboard, prepend to dashboard
+        // Fallback: prepend to the dashboard if recent-orders section is missing
         pharmacyDashboard.prepend(supplyFunctions);
     } else {
-        // Otherwise append to the main container
+        // Final fallback: append to main container
         mainContainer.appendChild(supplyFunctions);
     }
-    
-    // Set up event listeners for the group buttons
-    const createGroupBtn = document.getElementById('create-group-btn');
-    createGroupBtn.addEventListener('click', toggleGroupSelectionMode);
-    
-    // Set up event listener for the Confirm Group button
-    const confirmGroupBtn = document.getElementById('confirm-group-btn');
-    confirmGroupBtn.addEventListener('click', showCreateGroupModal);
-    
-    // Set up event listener for the View Order Groups button
-    const viewOrderGroupsBtn = document.getElementById('view-order-groups-btn');
-    if (viewOrderGroupsBtn) {
-        viewOrderGroupsBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            // Clear any previous state
-            orderGroupsModalUserRequested = true;
-            // Display the modal with explicit user action flag
-            displayOrderGroupsModal(false, true);
-            console.log('View Order Groups button clicked');
-        });
-    }
-    
-    // cleanJsonDisplay function is defined later in the file
+
+
 
 async function initializePage() {
     // Ensure user has selected a dispensary first (will show modal if not)
@@ -988,6 +1001,9 @@ async function initializePage() {
         if (searchInput) searchInput.disabled = false;
         if (refreshBtn) refreshBtn.disabled = false;
 
+        // Now that controls are enabled, set up their event listeners (search, ward filter, refresh)
+        initializeOrderFilters();
+
         // Initial render of orders
         applyFiltersAndRender();
     }
@@ -996,6 +1012,39 @@ async function initializePage() {
     
     // Initialize panel functionality
     initializePanels();
+
+    // Event listener for the "View Order Groups" button
+    const viewGroupsBtn = document.getElementById('view-order-groups-btn');
+    if (viewGroupsBtn) {
+      viewGroupsBtn.addEventListener('click', () => {
+        displayOrderGroupsModal(true, true);
+      });
+    }
+
+    // Event listener for the "Create Order Group" button
+    const createGroupBtn = document.getElementById('create-group-btn');
+    if (createGroupBtn) {
+      createGroupBtn.addEventListener('click', toggleGroupSelectionMode);
+    }
+
+    // Event listener for the "Confirm Group" button
+    const confirmGroupBtn = document.getElementById('confirm-group-btn');
+    if (confirmGroupBtn) {
+      confirmGroupBtn.addEventListener('click', () => {
+        const selectedOrders = Array.from(document.querySelectorAll('.order-select-checkbox:checked')).map(checkbox => checkbox.closest('.order-row').dataset.orderId);
+        if (selectedOrders.length > 0) {
+          showCreateGroupModal(selectedOrders);
+        } else {
+          showNotification('Please select at least one order to include in the group.', 'warning');
+        }
+      });
+    }
+
+    // Event listener for the "Cancel" button
+    const cancelGroupBtn = document.getElementById('cancel-group-btn');
+    if (cancelGroupBtn) {
+      cancelGroupBtn.addEventListener('click', toggleGroupSelectionMode);
+    }
 });
 
 /**
@@ -1093,8 +1142,22 @@ function initializeOrderFilters() {
     const refreshBtn = document.getElementById('refresh-orders-btn');
     if (refreshBtn) {
         refreshBtn.addEventListener('click', () => {
-            // Refresh button re-fetches data from the server
+            // Clear all filter inputs
+            const searchInput = document.getElementById('search-orders');
+            const wardFilterSelect = document.getElementById('filter-ward');
+            const urgencyFilterSelect = document.getElementById('filter-urgency');
+            const typeFilterSelect = document.getElementById('filter-type');
+
+            if (searchInput) searchInput.value = '';
+            if (wardFilterSelect) wardFilterSelect.value = 'all';
+            if (urgencyFilterSelect) urgencyFilterSelect.value = 'all';
+            if (typeFilterSelect) typeFilterSelect.value = 'all';
+
+            // Re-fetch orders WITHOUT any filters
             loadOrders();
+
+            // Immediately apply filters (which are now cleared) to update the view
+            applyFiltersAndRender();
         });
     }
 }
@@ -1445,6 +1508,7 @@ function displayOrdersWithSections(ordersByStatus, container) {
     // Get filters including search text if any
     const filters = getFilters();
     const searchText = filters.searchText || '';
+    const wardIdFilter = filters.wardId || null;
     
     // Get orders by status and apply search filter if needed
     let { processing=[], pending=[], unfulfilled=[], completed=[], cancelled=[] } = ordersByStatus;
@@ -1454,7 +1518,17 @@ function displayOrdersWithSections(ordersByStatus, container) {
         processing = processing.concat(ordersByStatus.inProgress);
     }
 
-    // Only apply search filter if there's search text
+    // Apply ward filter client-side if provided
+    if (wardIdFilter) {
+        const matchWard = (order) => order.wardId === wardIdFilter || order.wardName === wardIdFilter;
+        processing = processing.filter(matchWard);
+        pending = pending.filter(matchWard);
+        unfulfilled = unfulfilled.filter(matchWard);
+        completed = completed.filter(matchWard);
+        cancelled = cancelled.filter(matchWard);
+    }
+
+    // Apply search filter if there's search text
     if (searchText) {
         processing = applySearchFilter(processing, searchText);
         pending = applySearchFilter(pending, searchText);
@@ -1772,13 +1846,8 @@ function createOrderTableRow(order, tableBody, allowSelection = true) {
         
         selectCell.appendChild(checkbox);
         row.appendChild(selectCell);
-    } else if (groupSelectionMode && !allowSelection) {
-        // Add empty cell to maintain table structure when selection is not allowed
-        const placeholderCell = document.createElement('td');
-        placeholderCell.className = 'order-select-cell';
-        row.appendChild(placeholderCell);
-    }
-    
+    } // end selection checkbox column block
+
     // Format date and time
     const orderDate = new Date(order.timestamp);
     const formattedDate = orderDate.toLocaleDateString() + ' ' + orderDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
@@ -4600,10 +4669,10 @@ async function loadOrderGroups(forceRefresh = false) {
             // Fall back to general GET (try different endpoint formats)
             else if (typeof window.apiClient.get === 'function') {
                 try {
-                    console.log('Trying /api/order-groups endpoint');
-                    response = await window.apiClient.get('/api/order-groups');
+                    console.log('Trying /order-groups endpoint');
+                    response = await window.apiClient.get('/order-groups');
                 } catch (error) {
-                    console.error('Error fetching from /api/order-groups:', error);
+                    console.error('Error fetching from /order-groups:', error);
                     throw error; // re-throw the error to be caught by the outer block
                 }
             } 
@@ -4763,7 +4832,7 @@ async function fetchOrdersByGroup(groupId) {
             if (typeof window.apiClient.get === 'function') {
                 let groupResp;
                 try {
-                    groupResp = await window.apiClient.get(`/api/order-groups/${groupId}`);
+                    groupResp = await window.apiClient.get(`/order-groups/${groupId}`);
                 } catch (err) {
                     console.error(`Error fetching order group ${groupId}:`, err);
                 }

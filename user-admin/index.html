@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="../js/vendor/crypto-js.min.js"></script>
+    <title>User Admin Panel - Pharmacy System</title>
+    <link rel="stylesheet" href="../css/styles.css" />
+    <link rel="stylesheet" href="../css/admin.css" />
+    <link rel="icon" href="../favicon_io/favicon.ico" type="image/x-icon" />
+  </head>
+  <body>
+    <nav class="main-nav">
+      <img
+        src="../images/nhs_trust_logo.png"
+        alt="NHS Trust Logo"
+        class="nhs-logo"
+      />
+      <ul>
+        <a href="../home.html" class="nav-link">Home</a>
+        <a href="../remote-ordering/ward/index.html" class="nav-link"
+          >Ward Orders</a
+        >
+        <a href="../remote-ordering/pharmacy/index.html" class="nav-link"
+          >Pharmacy Supply</a
+        >
+        <a href="index.html" class="nav-link active">Admin</a>
+        <a href="../profile.html" class="nav-link">My Profile</a>
+        <a href="#" class="nav-link logout-link" id="logout-link">Logout</a>
+      </ul>
+    </nav>
+    <header>
+      <div class="nhs-header">
+        <div class="header-content">
+          <h1>User Administration</h1>
+        </div>
+      </div>
+    </header>
+
+    <main class="container">
+      <div class="admin-content">
+        <section id="user-management-section" class="admin-section">
+          <div class="section-header">
+            <h2>User Management</h2>
+            <button id="add-user-btn" class="btn btn-primary">
+              Add New User
+            </button>
+          </div>
+
+          <div class="alert" id="alert-box"></div>
+
+          <div class="users-table-container">
+            <table class="users-table">
+              <thead>
+                <tr>
+                  <th>Username</th>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Roles</th>
+                  <th>Last Login</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="users-table-body">
+                <!-- User rows will be added here via JavaScript -->
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <!-- Add User Modal -->
+    <div class="modal" id="user-modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 id="modal-title">Add New User</h3>
+          <button class="close-btn">&times;</button>
+        </div>
+        <div class="modal-body">
+          <form id="user-form">
+            <input type="hidden" id="user-id" />
+
+            <div class="form-group">
+              <label for="username">Username</label>
+              <input
+                type="text"
+                id="username"
+                name="username"
+                required
+                class="form-input"
+              />
+            </div>
+            
+            <div class="form-group">
+              <label for="first_name">First Name</label>
+              <input
+                type="text"
+                id="first_name"
+                name="first_name"
+                class="form-input"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="surname">Surname</label>
+              <input
+                type="text"
+                id="surname"
+                name="surname"
+                class="form-input"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="email">Email</label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                required
+                class="form-input"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="password">Password</label>
+              <input
+                type="password"
+                id="password"
+                name="password"
+                class="form-input"
+              />
+              <small id="password-help"
+                >Leave blank to keep current password when editing a
+                user.</small
+              >
+            </div>
+
+            <div class="form-group">
+              <label for="confirm-password">Confirm Password</label>
+              <input
+                type="password"
+                id="confirm-password"
+                name="confirm-password"
+                class="form-input"
+              />
+              <small>Please confirm the new password.</small>
+            </div>
+
+            <div class="form-group">
+              <label>Roles</label>
+              <div class="checkbox-group">
+                <label class="checkbox-label">
+                  <input type="checkbox" name="roles" value="super-admin" /> Super Admin
+                </label>
+                <label class="checkbox-label">
+                  <input type="checkbox" name="roles" value="user-admin" /> User Admin
+                </label>
+                <label class="checkbox-label">
+                  <input type="checkbox" name="roles" value="pharmacy" />
+                  Pharmacy
+                </label>
+                <label class="checkbox-label">
+                  <input type="checkbox" name="roles" value="ordering" />
+                  Ordering
+                </label>
+              </div>
+            </div>
+
+            <div class="form-group" id="status-group" style="display: none">
+              <label>Account Status</label>
+              <div class="radio-group">
+                <label class="radio-label">
+                  <input type="radio" name="is_active" value="1" checked />
+                  Active
+                </label>
+                <label class="radio-label">
+                  <input type="radio" name="is_active" value="0" /> Inactive
+                </label>
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary" id="save-user-btn">
+                Save User
+              </button>
+              <button type="button" class="btn btn-secondary close-modal">
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal" id="confirm-delete-modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>Confirm Delete</h3>
+          <button class="close-btn">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p>
+            Are you sure you want to delete this user? This action cannot be
+            undone.
+          </p>
+          <input type="hidden" id="delete-user-id" />
+          <div class="form-actions">
+            <button class="btn btn-danger" id="confirm-delete-btn">
+              Delete User
+            </button>
+            <button class="btn btn-secondary close-modal">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="../js/auth-utils.js"></script>
+    <script src="../js/api-client.js"></script>
+    <script src="/js/user-admin.js"></script>
+    <script src="/js/common.js"></script>
+    <script src="/js/nav-controller.js"></script>
+  </body>
+</html>

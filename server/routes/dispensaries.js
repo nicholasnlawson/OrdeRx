@@ -6,17 +6,14 @@
 const express = require('express');
 const router = express.Router();
 const dispensaryModel = require('../models/dispensary');
-const { verifyToken, hasRole, hasFullAdminAccess } = require('../middleware/auth');
+const { verifyToken, hasRole, hasAdminAccess, hasFullAdminAccess } = require('../middleware/auth');
 const logger = require('../utils/logger');
-
-// Apply authentication middleware to all routes
-router.use(verifyToken);
 
 /**
  * Get all dispensaries
- * Accessible to admin, pharmacy, and ordering roles
+ * Accessible to any admin role
  */
-router.get('/', async (req, res) => {
+router.get('/', verifyToken, hasAdminAccess(), async (req, res) => {
   try {
     const dispensaries = await dispensaryModel.getAllDispensaries(req.user.id, req.ip);
     res.json({
@@ -35,9 +32,9 @@ router.get('/', async (req, res) => {
 
 /**
  * Get dispensary by ID
- * Accessible to admin, pharmacy, and ordering roles
+ * Accessible to any admin role
  */
-router.get('/:id', async (req, res) => {
+router.get('/:id', verifyToken, hasAdminAccess(), async (req, res) => {
   try {
     const dispensary = await dispensaryModel.getDispensaryById(req.params.id, req.user.id, req.ip);
     if (!dispensary) {
@@ -64,7 +61,7 @@ router.get('/:id', async (req, res) => {
  * Create new dispensary
  * Full admin only (admin or super-admin)
  */
-router.post('/', hasFullAdminAccess(), async (req, res) => {
+router.post('/', verifyToken, hasFullAdminAccess(), async (req, res) => {
   try {
     const { name, description, hospital_id } = req.body;
     if (!name) {
@@ -93,7 +90,7 @@ router.post('/', hasFullAdminAccess(), async (req, res) => {
  * Update dispensary
  * Full admin only (admin or super-admin)
  */
-router.put('/:id', hasFullAdminAccess(), async (req, res) => {
+router.put('/:id', verifyToken, hasFullAdminAccess(), async (req, res) => {
   try {
     const dispensary = await dispensaryModel.updateDispensary(req.params.id, req.body, req.user.id, req.ip);
     res.json({
@@ -121,7 +118,7 @@ router.put('/:id', hasFullAdminAccess(), async (req, res) => {
  * Delete dispensary
  * Full admin only (admin or super-admin)
  */
-router.delete('/:id', hasFullAdminAccess(), async (req, res) => {
+router.delete('/:id', verifyToken, hasFullAdminAccess(), async (req, res) => {
   try {
     const success = await dispensaryModel.deleteDispensary(req.params.id, req.user.id, req.ip);
     if (!success) {
