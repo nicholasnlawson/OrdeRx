@@ -28,6 +28,15 @@ document.addEventListener('DOMContentLoaded', () => {
   const statusGroup = document.getElementById('status-group');
   const alertBox = document.getElementById('alert-box');
 
+  // Search and filter elements
+  const userSearchName = document.getElementById('user-search-name');
+  const applySearchBtn = document.getElementById('apply-search-btn');
+  const resetSearchBtn = document.getElementById('reset-search-btn');
+  const roleFilterSelect = document.getElementById('role-filter-select');
+  
+  // Store all users for filtering
+  let allUsers = [];
+
   // Load users on page load
   loadUsers();
 
@@ -135,6 +144,126 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // Event listeners for search and filter functionality
+  applySearchBtn.addEventListener('click', () => {
+    applyFilters();
+  });
+  
+  resetSearchBtn.addEventListener('click', () => {
+    resetFilters();
+  });
+  
+  // Add keyup event listener for real-time filtering as user types
+  userSearchName.addEventListener('keyup', (e) => {
+    // Apply filters after short delay to avoid filtering on every keystroke
+    if (e.key === 'Enter') {
+      applyFilters();
+    }
+  });
+  
+  /**
+   * Filter users based on search criteria and selected roles
+   */
+  function applyFilters() {
+    const searchTerm = userSearchName.value.toLowerCase().trim();
+    const selectedRole = roleFilterSelect.value;
+      
+    // Filter the users based on search term and selected roles
+    const filteredUsers = allUsers.filter(user => {
+      // Check if user matches search term (name or username)
+      const nameMatch = searchTerm === '' || 
+        user.username.toLowerCase().includes(searchTerm) ||
+        `${user.first_name || ''} ${user.surname || ''}`.toLowerCase().includes(searchTerm);
+        
+      // Check if user has at least one of the selected roles
+      if (selectedRole && !user.roles.includes(selectedRole)) {
+        return false;
+      }
+      return nameMatch;
+    });
+    
+    // Display filtered users
+    displayUsers(filteredUsers);
+  }
+  
+  /**
+   * Reset all filters and display all users
+   */
+  function resetFilters() {
+    userSearchName.value = '';
+    roleFilterSelect.value = '';
+    displayUsers(allUsers);
+  }
+  
+  /**
+   * Display users in the table
+   * @param {Array} users - Array of user objects to display
+   */
+  function displayUsers(users) {
+    // Clear existing table rows
+    userTableBody.innerHTML = '';
+    
+    // Add user rows
+    users.forEach(user => {
+      const row = document.createElement('tr');
+      
+      // Format roles as badges
+      const rolesBadges = user.roles.map(role => 
+        `<span class="user-role role-${role}">${role}</span>`
+      ).join(' ');
+      
+      // Format date
+      const lastLogin = user.last_login ? new Date(user.last_login).toLocaleString() : 'Never';
+      
+      // Format status
+      const status = user.is_active 
+        ? '<span class="user-status status-active">Active</span>' 
+        : '<span class="user-status status-inactive">Inactive</span>';
+      
+      row.innerHTML = `
+        <td>${user.username}</td>
+        <td>${user.first_name || ''} ${user.surname || ''}</td>
+        <td>${user.email}</td>
+        <td>${rolesBadges}</td>
+        <td>${lastLogin}</td>
+        <td>${status}</td>
+        <td>
+          <button class="action-btn edit-btn" data-id="${user.id}">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+            </svg>
+          </button>
+          <button class="action-btn delete-btn" data-id="${user.id}">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+              <line x1="10" y1="11" x2="10" y2="17"></line>
+              <line x1="14" y1="11" x2="14" y2="17"></line>
+            </svg>
+          </button>
+        </td>
+      `;
+      
+      userTableBody.appendChild(row);
+    });
+    
+    // Add event listeners to edit and delete buttons
+    document.querySelectorAll('.edit-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const userId = btn.getAttribute('data-id');
+        openUserModal(userId);
+      });
+    });
+    
+    document.querySelectorAll('.delete-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const userId = btn.getAttribute('data-id');
+        openDeleteModal(userId);
+      });
+    });
+  }
+  
   /**
    * Load all users from the API
    */
@@ -152,69 +281,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const users = response.users;
       console.log('Users loaded successfully:', users.length, 'users');
-
-      // Clear existing table rows
-      userTableBody.innerHTML = '';
-
-      // Add user rows
-      users.forEach(user => {
-        const row = document.createElement('tr');
-
-        // Format roles as badges
-        const rolesBadges = user.roles.map(role =>
-          `<span class="user-role role-${role}">${role}</span>`
-        ).join(' ');
-
-        // Format date
-        const lastLogin = user.last_login ? new Date(user.last_login).toLocaleString() : 'Never';
-
-        // Format status
-        const status = user.is_active
-          ? '<span class="user-status status-active">Active</span>'
-          : '<span class="user-status status-inactive">Inactive</span>';
-
-        row.innerHTML = `
-          <td>${user.username}</td>
-          <td>${user.first_name || ''} ${user.surname || ''}</td>
-          <td>${user.email}</td>
-          <td>${rolesBadges}</td>
-          <td>${lastLogin}</td>
-          <td>${status}</td>
-          <td>
-            <button class="action-btn edit-btn" data-id="${user.id}">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-              </svg>
-            </button>
-            <button class="action-btn delete-btn" data-id="${user.id}">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="3 6 5 6 21 6"></polyline>
-                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                <line x1="10" y1="11" x2="10" y2="17"></line>
-                <line x1="14" y1="11" x2="14" y2="17"></line>
-              </svg>
-            </button>
-          </td>
-        `;
-
-        userTableBody.appendChild(row);
-      });
-
-      // Add event listeners to edit and delete buttons
-      document.querySelectorAll('.edit-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const userId = btn.getAttribute('data-id');
-          openUserModal(userId);
-        });
-      });
-
-      document.querySelectorAll('.delete-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const userId = btn.getAttribute('data-id');
-          openDeleteModal(userId);
-        });
-      });
+      
+      // Store users for filtering
+      allUsers = users;
+      
+      // Display all users initially
+      displayUsers(allUsers);
     } catch (error) {
       showAlert(`Error loading users: ${error.message}`, 'error');
     }

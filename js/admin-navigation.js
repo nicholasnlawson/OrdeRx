@@ -38,6 +38,31 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // Update page title based on available sections
   updatePageTitle();
+
+  // Tab navigation for super admin page
+  const tabs = document.querySelectorAll('.admin-tab');
+  const sections = document.querySelectorAll('.admin-section');
+
+  function showSection(targetId) {
+    sections.forEach(sec => {
+      sec.id === targetId ? sec.style.display = 'block' : sec.style.display = 'none';
+    });
+    tabs.forEach(tab => {
+      tab.dataset.target === targetId ? tab.classList.add('active') : tab.classList.remove('active');
+    });
+  }
+
+  // Initialize to show only user management by default
+  showSection('users-section');
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      const target = tab.dataset.target;
+      // Prevent access to location management if not full admin
+      if (target === 'wards-section' && !AuthUtils.hasFullAdminAccess()) return;
+      showSection(target);
+    });
+  });
   
   /**
    * Update the page title to reflect available functionality

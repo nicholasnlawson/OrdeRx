@@ -46,6 +46,26 @@
               Add New User
             </button>
           </div>
+          
+          <!-- User Search Controls -->
+          <div class="search-controls">
+            <div class="search-input-wrapper">
+              <input type="text" id="user-search-name" class="search-input" placeholder="Search by name or username...">
+            </div>
+            <div class="search-filter-wrapper">
+              <div class="col-md-4">
+                <label for="role-filter-select" class="form-label">Filter by Role</label>
+                <select id="role-filter-select" class="form-select">
+                  <option value="">All Roles</option>
+                  <option value="super-admin">Super Admin</option>
+                  <option value="user-admin">User Admin</option>
+                  <option value="pharmacy">Pharmacy</option>
+                  <option value="ordering">Ordering</option>
+                </select>
+              </div>
+            <button id="apply-search-btn" class="btn btn-secondary">Apply Filters</button>
+            <button id="reset-search-btn" class="btn btn-link">Reset</button>
+          </div>
 
           <div class="alert" id="alert-box"></div>
 
