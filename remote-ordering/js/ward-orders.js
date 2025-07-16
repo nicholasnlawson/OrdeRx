@@ -2211,20 +2211,105 @@ async function loadMedicationData() {
         let formulationAliasesData = await formulationAliasesResponse.json();
         
         // Load combination inhaler strength list
+        // Load the new BNF medication data structure
+        const bnfMedicationsResponse = await fetch('/data/July_2025_BNF_Strength+Formulations.json');
+        let bnfMedicationsData = {};
+        try {
+            bnfMedicationsData = await bnfMedicationsResponse.json();
+        } catch (err) {
+            console.warn('[AUTO] No July_2025_BNF_Strength+Formulations.json found or invalid JSON. Falling back to legacy mode.');
+        }
+        
+        // For backward compatibility, still try to load combination_strengths if available
         const comboStrengthsResponse = await fetch('/data/combination_strengths.json');
         let comboStrengthsData = {};
         try {
             comboStrengthsData = await comboStrengthsResponse.json();
         } catch (err) {
-            console.warn('[AUTO] No combination_strengths.json found or invalid JSON. Skipping combo strengths setup.');
+            console.warn('[AUTO] No combination_strengths.json found or invalid JSON. Skipping legacy combo strengths setup.');
         }
 
         // Build lowercase lookup map for quick case-insensitive access
         const combinationStrengthsMap = {};
+        
+        // Process the legacy combination strengths data if present
         if (comboStrengthsData && typeof comboStrengthsData === 'object') {
             Object.entries(comboStrengthsData).forEach(([drug, strengths]) => {
                 if (Array.isArray(strengths)) {
                     combinationStrengthsMap[drug.toLowerCase()] = strengths;
+                }
+            });
+        }
+        
+        // Process the new BNF medication data structure
+        window.bnfMedicationsData = bnfMedicationsData;
+        
+        // Create efficient lookup maps for BNF medications
+        window.drugNameMap = new Map();
+        window.productNameMap = new Map();
+        window.drugKeywordMap = new Map();
+        
+        if (bnfMedicationsData && typeof bnfMedicationsData === 'object') {
+            Object.entries(bnfMedicationsData).forEach(([drugClass, products]) => {
+                const drugClassLower = drugClass.toLowerCase();
+                const drugWords = drugClassLower.split(/\s+/);
+                
+                // Add drug class name to maps
+                window.drugNameMap.set(drugClassLower, { drugClass, products });
+                
+                // Add each word from the drug class to the keyword map
+                drugWords.forEach(word => {
+                    if (word.length > 2) { // Skip very short words
+                        if (!window.drugKeywordMap.has(word)) {
+                            window.drugKeywordMap.set(word, []);
+                        }
+                        window.drugKeywordMap.get(word).push({ drugClass, type: 'drugClass' });
+                    }
+                });
+                
+                // Process product names
+                if (products && typeof products === 'object') {
+                    Object.entries(products).forEach(([productName, formulations]) => {
+                        const productNameLower = productName.toLowerCase();
+                        const productWords = productNameLower.split(/\s+/);
+                        
+                        // Add product name to maps
+                        window.productNameMap.set(productNameLower, { 
+                            drugClass, 
+                            productName, 
+                            formulations 
+                        });
+                        
+                        // Add each word from the product name to the keyword map
+                        productWords.forEach(word => {
+                            if (word.length > 2) { // Skip very short words
+                                if (!window.drugKeywordMap.has(word)) {
+                                    window.drugKeywordMap.set(word, []);
+                                }
+                                window.drugKeywordMap.get(word).push({ 
+                                    drugClass, 
+                                    productName, 
+                                    type: 'productName' 
+                                });
+                            }
+                        });
+                        
+                        // Generate combination strengths for backward compatibility
+                        if (Array.isArray(formulations)) {
+                            // Map to just the strength values for compatibility with the old format
+                            const strengths = formulations.map(item => item.strength).filter(Boolean);
+                            if (strengths.length > 0) {
+                                // Add both the product name and drug class for strength lookups
+                                if (!combinationStrengthsMap[productNameLower]) {
+                                    combinationStrengthsMap[productNameLower] = strengths;
+                                }
+                                // Only add the drug class if not already present (avoid overwriting)
+                                if (!combinationStrengthsMap[drugClassLower]) {
+                                    combinationStrengthsMap[drugClassLower] = strengths;
+                                }
+                            }
+                        }
+                    });
                 }
             });
         }
@@ -2284,21 +2369,312 @@ async function loadMedicationData() {
         
         // Add getGenericName function to map aliases to generic names
         // Utility: check if a medication is a combination inhaler present in our combo list
+        /**
+         * Find the best match for a medication name using the BNF data structure
+         * Searches both drug class names and product names, considering word order flexibility
+         * @param {string} searchTerm - The medication name to search for
+         * @returns {object|null} - The best match result or null if no match found
+         */
+        window.findBestMedicationMatch = function(searchTerm) {
+            if (!searchTerm || typeof searchTerm !== 'string' || !window.drugKeywordMap) return null;
+            
+            const searchTermLower = searchTerm.toLowerCase().trim();
+            
+            // Direct match on drug name or product name
+            if (window.drugNameMap.has(searchTermLower)) {
+                return {
+                    type: 'drugClass',
+                    drugClass: window.drugNameMap.get(searchTermLower).drugClass,
+                    products: window.drugNameMap.get(searchTermLower).products,
+                    score: 1.0
+                };
+            }
+            
+            if (window.productNameMap.has(searchTermLower)) {
+                const match = window.productNameMap.get(searchTermLower);
+                return {
+                    type: 'productName',
+                    drugClass: match.drugClass,
+                    productName: match.productName,
+                    formulations: match.formulations,
+                    score: 1.0
+                };
+            }
+            
+            // Split search term into words
+            const searchWords = searchTermLower.split(/\s+/).filter(w => w.length > 2);
+            if (searchWords.length === 0) return null;
+            
+            // Build map of candidates
+            const candidates = new Map();
+            
+            // Find potential matches for each word
+            searchWords.forEach(word => {
+                const matches = window.drugKeywordMap.get(word) || [];
+                matches.forEach(match => {
+                    const key = match.type === 'drugClass' ? match.drugClass : `${match.drugClass}|${match.productName}`;
+                    if (!candidates.has(key)) {
+                        candidates.set(key, {
+                            match,
+                            matchedWords: new Set(),
+                            wordCount: match.type === 'drugClass' 
+                                ? match.drugClass.toLowerCase().split(/\s+/).filter(w => w.length > 2).length
+                                : match.productName.toLowerCase().split(/\s+/).filter(w => w.length > 2).length
+                        });
+                    }
+                    candidates.get(key).matchedWords.add(word);
+                });
+            });
+            
+            // Convert to array and calculate scores
+            const results = Array.from(candidates.values()).map(candidate => {
+                const { match, matchedWords, wordCount } = candidate;
+                
+                // Calculate score based on how many words matched
+                const coverageScore = matchedWords.size / searchWords.length;
+                const completenessScore = matchedWords.size / wordCount;
+                
+                // Weighted score - prioritize matches with all search words
+                const score = (coverageScore * 0.7) + (completenessScore * 0.3);
+                
+                return {
+                    type: match.type,
+                    drugClass: match.drugClass,
+                    productName: match.type === 'productName' ? match.productName : null,
+                    matchedWords: matchedWords.size,
+                    totalWords: wordCount,
+                    score
+                };
+            });
+            
+            // Filter results where all search words were matched
+            const fullMatches = results.filter(r => r.matchedWords === searchWords.length);
+            
+            // If we have full matches, use those, otherwise use all matches
+            const candidateResults = fullMatches.length > 0 ? fullMatches : results;
+            
+            // Sort by score (highest first)
+            candidateResults.sort((a, b) => b.score - a.score);
+            
+            // If no results, return null
+            if (candidateResults.length === 0) return null;
+            
+            // Get the top result
+            const bestMatch = candidateResults[0];
+            
+            // Return the full information for the best match
+            if (bestMatch.type === 'drugClass') {
+                return {
+                    type: 'drugClass',
+                    drugClass: bestMatch.drugClass,
+                    products: window.bnfMedicationsData[bestMatch.drugClass],
+                    score: bestMatch.score
+                };
+            } else {
+                return {
+                    type: 'productName',
+                    drugClass: bestMatch.drugClass,
+                    productName: bestMatch.productName,
+                    formulations: window.bnfMedicationsData[bestMatch.drugClass][bestMatch.productName],
+                    score: bestMatch.score
+                };
+            }
+        };
+        
+        /**
+         * Get available unique formulation types for a medication based on the BNF data
+         * @param {string} medicationName - The medication name
+         * @returns {Array} - Array of unique formulation strings
+         */
+        window.getMedicationFormulationTypes = function(medicationName) {
+            const formulations = window.getMedicationFormulations(medicationName);
+            if (!formulations || formulations.length === 0) return [];
+
+            const formulationTypes = formulations.map(f => f.formulation.toLowerCase());
+            return [...new Set(formulationTypes)]; // Return unique formulation types
+        };
+
+        /**
+         * Get available formulations for a medication based on the BNF data
+         * @param {string} medicationName - The medication name
+         * @returns {Array} - Array of formulation objects with formulation and strength
+         */
+        window.getMedicationFormulations = function(medicationName) {
+            if (!medicationName) return [];
+            
+            const match = window.findBestMedicationMatch(medicationName);
+            if (!match) return [];
+            
+            if (match.type === 'drugClass') {
+                // If matched at drug class level, collect formulations from all products
+                const allFormulations = [];
+                Object.values(match.products).forEach(productFormulations => {
+                    if (Array.isArray(productFormulations)) {
+                        allFormulations.push(...productFormulations);
+                    }
+                });
+                return allFormulations;
+            } else {
+                // If matched at product level, return its formulations
+                return match.formulations || [];
+            }
+        };
+        
+        /**
+         * Check if a medication has associated formulation and strength data
+         * @param {string} medicationName - The medication name
+         * @returns {boolean} - True if it's a medication with formulation/strength data
+         */
         window.isCombinationMedication = function(medicationName) {
-            if (!medicationName || !window.combinationStrengthsMap) return false;
+            if (!medicationName) return false;
+            
+            // First check the new BNF data structure
+            if (window.bnfMedicationsData && Object.keys(window.bnfMedicationsData).length > 0) {
+                const match = window.findBestMedicationMatch(medicationName);
+                return Boolean(match && (match.formulations || (match.products && Object.keys(match.products).length > 0)));
+            }
+            
+            // Fall back to the legacy implementation
+            if (!window.combinationStrengthsMap) return false;
             return Boolean(window.combinationStrengthsMap[medicationName.toLowerCase()]);
         };
 
-        // Utility: get available combo strengths
+        /**
+         * Get available strengths for a medication
+         * @param {string} medicationName - The medication name
+         * @returns {Array} - Array of strength strings
+         */
+        window.updateFormulationFieldForMedication = function(nameInputElement) {
+            if (!nameInputElement) return;
+            const medName = (nameInputElement.value || '').trim();
+            if (!medName) return;
+
+            const id = nameInputElement.id || '';
+            const match = id.match(/^(ws-)?med-name-(\d+)$/);
+            if (!match) return;
+
+            const isWardStock = Boolean(match[1]);
+            const index = match[2];
+            const formFieldId = `${isWardStock ? 'ws-' : ''}med-form-${index}`;
+
+            let formElem = document.getElementById(formFieldId);
+            if (!formElem) return;
+
+            const formulations = window.getMedicationFormulationTypes(medName);
+
+            if (formulations && formulations.length > 0) {
+                // If formulations are available, create a dropdown
+                if (formElem.tagName.toLowerCase() === 'select' && formElem.dataset.custom === 'false') {
+                    // Already a dropdown, just update options
+                    const currentVal = formElem.value;
+                    formElem.innerHTML = '';
+                    formulations.forEach(f => {
+                        const opt = document.createElement('option');
+                        opt.value = f;
+                        opt.textContent = f.charAt(0).toUpperCase() + f.slice(1);
+                        formElem.appendChild(opt);
+                    });
+                    // Add a free-text option
+                    const otherOpt = document.createElement('option');
+                    otherOpt.value = 'other';
+                    otherOpt.textContent = 'Other...';
+                    formElem.appendChild(otherOpt);
+
+                    if (currentVal && formulations.includes(currentVal)) {
+                        formElem.value = currentVal;
+                    }
+
+                    // Event listener for 'Other...' selection
+                    formElem.addEventListener('change', (e) => {
+                        if (e.target.value === 'other') {
+                            const textInput = document.createElement('input');
+                            textInput.type = 'text';
+                            textInput.id = formElem.id;
+                            textInput.className = formElem.className;
+                            textInput.name = formElem.name;
+                            textInput.placeholder = 'Enter formulation';
+                            textInput.setAttribute('autocomplete', 'off');
+                            textInput.setAttribute('autocorrect', 'off');
+                            textInput.setAttribute('spellcheck', 'false');
+                            formElem.parentNode.replaceChild(textInput, formElem);
+                            textInput.focus();
+                        }
+                    });
+                } else {
+                    // Replace input with a select
+                    const newSelect = document.createElement('select');
+                    newSelect.id = formElem.id;
+                    newSelect.className = formElem.className;
+                    newSelect.dataset.custom = 'false';
+
+                    formulations.forEach(f => {
+                        const opt = document.createElement('option');
+                        opt.value = f;
+                        opt.textContent = f.charAt(0).toUpperCase() + f.slice(1);
+                        newSelect.appendChild(opt);
+                    });
+
+                    const otherOpt = document.createElement('option');
+                    otherOpt.value = 'other';
+                    otherOpt.textContent = 'Other...';
+                    newSelect.appendChild(otherOpt);
+
+                    newSelect.addEventListener('change', (e) => {
+                        if (e.target.value === 'other') {
+                            const textInput = document.createElement('input');
+                            textInput.type = 'text';
+                            textInput.id = newSelect.id;
+                            textInput.className = newSelect.className;
+                            textInput.name = newSelect.name;
+                            textInput.placeholder = 'Enter formulation';
+                            textInput.setAttribute('autocomplete', 'off');
+                            textInput.setAttribute('autocorrect', 'off');
+                            textInput.setAttribute('spellcheck', 'false');
+                            newSelect.parentNode.replaceChild(textInput, newSelect);
+                            textInput.focus();
+                        }
+                    });
+
+                    formElem.parentNode.replaceChild(newSelect, formElem);
+                }
+            } else {
+                // If no formulations, ensure it's a text input
+                if (formElem.tagName.toLowerCase() === 'select') {
+                    const newInput = document.createElement('input');
+                    newInput.type = 'text';
+                    newInput.id = formElem.id;
+                    newInput.className = formElem.className;
+                    newInput.placeholder = 'e.g., tablets, capsules';
+                    formElem.parentNode.replaceChild(newInput, formElem);
+                }
+            }
+        };
+
         window.getCombinationStrengths = function(medicationName) {
-            if (!medicationName || !window.combinationStrengthsMap) return [];
+            if (!medicationName) return [];
+            
+            // First try the new BNF data structure
+            if (window.bnfMedicationsData && Object.keys(window.bnfMedicationsData).length > 0) {
+                const formulations = window.getMedicationFormulations(medicationName);
+                if (formulations.length > 0) {
+                    // Extract just the strength values
+                    return formulations.map(item => item.strength)
+                        .filter(Boolean)
+                        .filter((value, index, self) => self.indexOf(value) === index); // Unique values
+                }
+            }
+            
+            // Fall back to the legacy implementation
+            if (!window.combinationStrengthsMap) return [];
             const data = window.combinationStrengthsMap[medicationName.toLowerCase()] || [];
             if (!Array.isArray(data)) return [];
             if (data.length === 0) return [];
+            
             // If stored as objects {values, units}, extract the values field
             if (typeof data[0] === 'object') {
                 return data.map(entry => entry.values || '').filter(Boolean);
             }
+            
             // Already array of strings
             return data;
         };
@@ -2344,7 +2720,7 @@ async function loadMedicationData() {
                     // Add a free-text option
                     const otherOpt = document.createElement('option');
                     otherOpt.value = '__custom__';
-                    otherOpt.textContent = 'Other / free text…';
+                    otherOpt.textContent = 'Other...';
                     strengthElem.appendChild(otherOpt);
                     // Handle custom selection
                     strengthElem.addEventListener('change', function() {
@@ -2354,7 +2730,7 @@ async function loadMedicationData() {
                             input.id = strengthFieldId;
                             input.className = 'med-strength';
                             input.placeholder = 'Enter strength';
-                            input.autocomplete = 'nope';
+                            input.autocomplete = 'off';
                             input.setAttribute('autocorrect', 'off');
                             input.spellcheck = false;
                             input.dataset.custom = 'true';
@@ -2376,7 +2752,7 @@ async function loadMedicationData() {
                     // Add a free-text option
                     const otherOpt = document.createElement('option');
                     otherOpt.value = '__custom__';
-                    otherOpt.textContent = 'Other / free text…';
+                    otherOpt.textContent = 'Other...';
                     select.appendChild(otherOpt);
                     // Handle custom selection
                     select.addEventListener('change', function() {
@@ -2386,7 +2762,7 @@ async function loadMedicationData() {
                             input.id = strengthFieldId;
                             input.className = 'med-strength';
                             input.placeholder = 'Enter strength';
-                            input.autocomplete = 'nope';
+                            input.autocomplete = 'off';
                             input.setAttribute('autocorrect', 'off');
                             input.spellcheck = false;
                             input.dataset.custom = 'true';
@@ -2405,7 +2781,7 @@ async function loadMedicationData() {
                     input.id = strengthFieldId;
                     input.className = 'med-strength';
                     input.placeholder = 'e.g., 500mg';
-                    input.autocomplete = 'nope';
+                    input.autocomplete = 'off';
                     input.setAttribute('autocorrect', 'off');
                     input.spellcheck = false;
                     container.replaceChild(input, strengthElem);
@@ -2503,8 +2879,127 @@ async function loadMedicationData() {
  * @param {HTMLInputElement} inputElement - Input element
  */
 function setupMedicationAutocomplete(inputElement) {
-    if (!inputElement || !window.medicationsData || !window.medicationsData.length) return;
+    if (!inputElement) return;
     
+    // Check if jQuery UI autocomplete is available
+    if (typeof $ === 'function' && typeof $.fn.autocomplete === 'function') {
+        // Use jQuery UI autocomplete
+        $(inputElement).autocomplete({
+            minLength: 2,
+            source: function(request, response) {
+                const value = request.term.toLowerCase();
+                
+                // If we have the BNF medication data, use our advanced matching logic
+                if (window.bnfMedicationsData && Object.keys(window.bnfMedicationsData).length > 0) {
+                    // Get all drug classes and product names that might match
+                    const searchWords = value.split(/\s+/).filter(w => w.length > 2);
+                    if (searchWords.length === 0) {
+                        response([]);
+                        return;
+                    }
+                    
+                    // Find candidate words that might match any part of the search
+                    const candidates = new Set();
+                    searchWords.forEach(word => {
+                        const matches = window.drugKeywordMap.get(word) || [];
+                        matches.forEach(match => {
+                            if (match.type === 'drugClass') {
+                                candidates.add(match.drugClass);
+                            } else {
+                                candidates.add(match.productName);
+                            }
+                        });
+                    });
+                    
+                    // Convert to array for filtering and sorting
+                    let results = Array.from(candidates).filter(candidate => {
+                        const candidateLower = candidate.toLowerCase();
+                        // All search words must appear in the candidate
+                        return searchWords.every(word => candidateLower.includes(word));
+                    });
+                    
+                    // Sort results
+                    results.sort((a, b) => {
+                        const aLower = a.toLowerCase();
+                        const bLower = b.toLowerCase();
+                        // Exact matches at start should come first
+                        if (aLower.startsWith(value) && !bLower.startsWith(value)) return -1;
+                        if (!aLower.startsWith(value) && bLower.startsWith(value)) return 1;
+                        // Then exact substring matches
+                        if (aLower.includes(' ' + value) && !bLower.includes(' ' + value)) return -1;
+                        if (!aLower.includes(' ' + value) && bLower.includes(' ' + value)) return 1;
+                        // Then by length (shorter = higher)
+                        return aLower.length - bLower.length;
+                    });
+                    
+                    // Limit to reasonable number of results
+                    response(results.slice(0, 10));
+                    return;
+                }
+                
+                // Fall back to the original implementation for legacy data
+                if (!window.medicationsData || !window.medicationsData.length) {
+                    response([]);
+                    return;
+                }
+                
+                const result = window.medicationsData
+                    .filter(med => {
+                        if (typeof med === 'string') {
+                            return med.toLowerCase().includes(value);
+                        }
+                        return false;
+                    })
+                    .sort((a, b) => {
+                        const aLower = (typeof a === 'string' ? a : '').toLowerCase();
+                        const bLower = (typeof b === 'string' ? b : '').toLowerCase();
+                        // Exact matches at start should come first
+                        if (aLower.startsWith(value) && !bLower.startsWith(value)) return -1;
+                        if (!aLower.startsWith(value) && bLower.startsWith(value)) return 1;
+                        // Then exact substring matches
+                        if (aLower.includes(' ' + value) && !bLower.includes(' ' + value)) return -1;
+                        if (!aLower.includes(' ' + value) && bLower.includes(' ' + value)) return 1;
+                        // Then length (shorter = higher)
+                        return aLower.length - bLower.length;
+                    })
+                    // Limit to reasonable number of results
+                    .slice(0, 10);
+                    
+                response(result);
+            },
+            select: function(event, ui) {
+                $(this).val(ui.item.value);
+                // Manually trigger updates for both fields
+                window.updateStrengthFieldForMedication(this);
+                window.updateFormulationFieldForMedication(this);
+                // Trigger change event for any other listeners
+                $(this).trigger('change');
+                return false;
+            }
+        });
+        
+        // Ensure the linked strength and form fields switch appropriately when the name changes
+        const _syncMedicationFields = () => {
+            if (typeof window.updateStrengthFieldForMedication === 'function') {
+                window.updateStrengthFieldForMedication(inputElement);
+            }
+            if (typeof window.updateFormulationFieldForMedication === 'function') {
+                window.updateFormulationFieldForMedication(inputElement);
+            }
+        };
+
+        // Initial call (in case field already has a value)
+        _syncMedicationFields();
+
+        // React to user edits and autocomplete selection
+        inputElement.addEventListener('input', _syncMedicationFields);
+        inputElement.addEventListener('change', _syncMedicationFields);
+        inputElement.addEventListener('blur', _syncMedicationFields);
+        
+        return;
+    }
+    
+    // Fallback to custom implementation if jQuery UI is not available
     // Create a simple autocomplete wrapper around the input
     const wrapper = document.createElement('div');
     wrapper.className = 'autocomplete-wrapper';
@@ -2514,18 +3009,23 @@ function setupMedicationAutocomplete(inputElement) {
     // Add autocomplete="off" to prevent browser autofill
     inputElement.setAttribute('autocomplete', 'off');
 
-    // Ensure the linked strength field switches appropriately when the name changes
-    const _syncStrengthField = () => {
+    // Ensure the linked strength and form fields switch appropriately when the name changes
+    const _syncMedicationFields = () => {
         if (typeof window.updateStrengthFieldForMedication === 'function') {
             window.updateStrengthFieldForMedication(inputElement);
         }
+        if (typeof window.updateFormulationFieldForMedication === 'function') {
+            window.updateFormulationFieldForMedication(inputElement);
+        }
     };
+
     // Initial call (in case field already has a value)
-    _syncStrengthField();
+    _syncMedicationFields();
+
     // React to user edits and autocomplete selection
-    inputElement.addEventListener('input', _syncStrengthField);
-    inputElement.addEventListener('change', _syncStrengthField);
-    inputElement.addEventListener('blur', _syncStrengthField);
+    inputElement.addEventListener('input', _syncMedicationFields);
+    inputElement.addEventListener('change', _syncMedicationFields);
+    inputElement.addEventListener('blur', _syncMedicationFields);
     
     // Create the autocomplete dropdown
     const dropdownList = document.createElement('ul');
@@ -2547,6 +3047,12 @@ function setupMedicationAutocomplete(inputElement) {
             .filter(med => {
                 if (typeof med === 'string') {
                     return med.toLowerCase().includes(value);
+                }
+                
+                // Support for the BNF data structure searching
+                if (window.bnfMedicationsData && Object.keys(window.bnfMedicationsData).length > 0) {
+                    // This will be handled by our existing medication data
+                    return false;
                 }
                 return false;
             })
@@ -2637,9 +3143,17 @@ function setupMedicationAutocomplete(inputElement) {
                     
                     dropdownList.style.display = 'none';
                     
-                    // Trigger change event to update related fields (e.g., formulation)
-                    const event = new Event('change');
-                    inputElement.dispatchEvent(event);
+                    // Trigger strength and formulation field updates
+                    if (typeof window.updateStrengthFieldForMedication === 'function') {
+                        window.updateStrengthFieldForMedication(inputElement);
+                    }
+                    if (typeof window.updateFormulationFieldForMedication === 'function') {
+                        window.updateFormulationFieldForMedication(inputElement);
+                    }
+
+                    // Also trigger change event to be consistent with jQuery UI
+                    const changeEvent = new Event('change', { bubbles: true });
+                    inputElement.dispatchEvent(changeEvent);
                 });
                 
                 // Add hover effect for brand name exceptions
@@ -2801,13 +3315,13 @@ function createMedicationItem(index) {
             <div class="form-column">
                 <label for="med-strength-${index}">Strength:</label>
                 <input type="text" id="med-strength-${index}" class="med-strength" placeholder="e.g., 500mg" 
-                       autocomplete="nope" autocorrect="off" spellcheck="false" 
+                       autocomplete="off" autocorrect="off" spellcheck="false" 
                        name="strength_${index}_${Math.random().toString(36).substring(2, 10)}" />
             </div>
             <div class="form-column">
                 <label for="med-quantity-${index}">Quantity:</label>
                 <input type="text" id="med-quantity-${index}" class="med-quantity" placeholder="e.g., 28" 
-                       autocomplete="nope" autocorrect="off" spellcheck="false" required 
+                       autocomplete="off" autocorrect="off" spellcheck="false" required 
                        name="quantity_${index}_${Math.random().toString(36).substring(2, 10)}" />
             </div>
         </div>
@@ -2857,13 +3371,13 @@ function createWardStockMedicationItem(index) {
             <div class="form-column">
                 <label for="ws-med-strength-${index}">Strength:</label>
                 <input type="text" id="ws-med-strength-${index}" class="med-strength" placeholder="e.g., 500mg" 
-                       autocomplete="nope" autocorrect="off" spellcheck="false" 
+                       autocomplete="off" autocorrect="off" spellcheck="false" 
                        name="ws_strength_${index}_${Math.random().toString(36).substring(2, 10)}" />
             </div>
             <div class="form-column">
                 <label for="ws-med-quantity-${index}">Quantity:</label>
                 <input type="text" id="ws-med-quantity-${index}" class="med-quantity" placeholder="e.g., 28" 
-                       autocomplete="nope" autocorrect="off" spellcheck="false" required 
+                       autocomplete="off" autocorrect="off" spellcheck="false" required 
                        name="ws_quantity_${index}_${Math.random().toString(36).substring(2, 10)}" />
             </div>
         </div>
@@ -2872,7 +3386,7 @@ function createWardStockMedicationItem(index) {
             <div class="form-column">
                 <label for="ws-med-dose-${index}">Dose:</label>
                 <input type="text" id="ws-med-dose-${index}" class="med-dose" placeholder="e.g., 1-2 tablets daily" 
-                       autocomplete="nope" autocorrect="off" spellcheck="false" 
+                       autocomplete="off" autocorrect="off" spellcheck="false" 
                        name="ws_dose_${index}_${Math.random().toString(36).substring(2, 10)}" />
             </div>
         </div>
