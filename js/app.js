@@ -286,13 +286,19 @@ function clearQueue() {
  * Print all labels in the queue
  */
 function printQueue() {
+    console.log('printQueue function called');
+    
     if (labelQueue.length === 0) {
         alert('There are no labels in the queue to print');
         return;
     }
     
+    console.log('Queue has', labelQueue.length, 'labels');
+    
     // Ask user which label position to start from (1-24 on an A4 sheet)
     let startPosition = prompt('Enter the label number to start from (1-24):', '1');
+    
+    console.log('User entered start position:', startPosition);
     
     // Validate input
     startPosition = parseInt(startPosition);
@@ -301,12 +307,17 @@ function printQueue() {
         return;
     }
     
+    console.log('Validated start position:', startPosition);
+    
     // Create a print container if it doesn't exist
     let printContainer = document.getElementById('print-container');
     if (!printContainer) {
         printContainer = document.createElement('div');
         printContainer.id = 'print-container';
         document.body.appendChild(printContainer);
+        console.log('Created new print container');
+    } else {
+        console.log('Using existing print container');
     }
     
     // Clear previous content
@@ -322,6 +333,8 @@ function printQueue() {
     
     // Create all the label elements first
     const labelElements = [];
+    
+    console.log('Starting to process labels...');
     
     // Process each label in the queue
     labelQueue.forEach(labelData => {
@@ -362,16 +375,24 @@ function printQueue() {
         labelsContainer.appendChild(label);
     });
     
+    console.log('Finished processing labels. Total count:', labelCount);
+    console.log('Label elements created:', labelElements.length);
+    
     // Position the print container off-screen during preparation
     printContainer.style.position = 'absolute';
     printContainer.style.left = '-9999px';
     printContainer.style.top = '0';
     printContainer.style.display = 'block';
     
+    console.log('Positioned print container, starting print process...');
+    
     // Give browser time to render before printing
     setTimeout(() => {
+        console.log('About to call window.print()');
         // Print
         window.print();
+        
+        console.log('window.print() called');
         
         // Ask if queue should be cleared after printing
         if (confirm(`${labelCount} labels printed. Do you want to clear the queue?`)) {
