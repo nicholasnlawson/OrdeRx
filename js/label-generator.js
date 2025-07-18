@@ -245,7 +245,25 @@ const LabelGenerator = {
     /**
      * Generate split labels for long content
      * @param {Object} data - Form data
-        const medicationFull = `${data.medicationName || ''} ${medicationStrength}${data.medicationFormulation || ''}`;
+     * @param {Object} splitInfo - Information about what needs splitting
+     * @returns {Array} - Array of HTML content for the labels
+     */
+    generateSplitLabels(data, splitInfo) {
+        const labels = [];
+        
+        // Get dispensary info
+        const dispensary = {
+            name: data.dispensary || 'Pharmacy Name',
+            address: data.dispensaryAddress || 'Pharmacy Address',
+            phone: data.dispensaryPhone || 'Phone Number'
+        };
+        
+        // Format date
+        const date = this.formatDate(data.dispensedDate);
+        
+        // Get medication strength
+        const medicationStrength = data.medicationStrength || '';
+        const medicationFull = `${data.medicationName || ''} ${medicationStrength}${data.medicationFormulation ? ' ' + data.medicationFormulation : ''}`;
         
         // Get warning text from additional information field (already includes standard warning if enabled)
         let warningText = data.additionalInformation || '';
@@ -670,7 +688,7 @@ const LabelGenerator = {
         
         // Format medication name, strength and formulation
         const medicationStrength = data.medicationStrength ? `${data.medicationStrength} ` : '';
-        const medicationFull = `${data.medicationName || ''} ${medicationStrength}${data.medicationFormulation || ''}`;
+        const medicationFull = `${data.medicationName || ''} ${medicationStrength}${data.medicationFormulation ? data.medicationFormulation : ''}`;
         
         // Check content length to prevent overflow
         const dosageLength = (data.dosageInstructions || '').length;
