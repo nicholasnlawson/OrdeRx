@@ -32,6 +32,53 @@
     font-weight: bold;
 }
 
+.welcome-message {
+    font-size: 1.2em;
+    line-height: 1.5;
+}
+
+/* Overlabel styles */
+.overlabel-placeholder {
+    color: #666;
+    font-style: italic;
+    font-size: 0.7em;
+}
+
+.disabled-field {
+    background-color: #f0f0f0;
+    color: #999;
+    cursor: not-allowed;
+}
+
+.secondary-btn {
+    background-color: var(--nhs-light-grey);
+    color: var(--nhs-dark-grey);
+    border: 1px solid var(--nhs-mid-grey);
+    padding: 4px 8px;
+    font-size: 0.8rem;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.secondary-btn:hover {
+    background-color: var(--nhs-mid-grey);
+    color: var(--nhs-dark-blue);
+}
+
+.secondary-btn.active {
+    background-color: #ddd;
+    border: 1px solid #aaa;
+}
+
+.info-message {
+    background-color: #e8f4fb;
+    border-left: 4px solid var(--nhs-light-blue);
+    color: var(--nhs-dark-grey);
+    padding: 8px 12px;
+    margin: 8px 0;
+    font-size: 0.9em;
+}
+
 .close-button:hover,
 .close-button:focus {
     color: black;

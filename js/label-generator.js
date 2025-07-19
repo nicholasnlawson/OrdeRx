@@ -481,6 +481,7 @@ const LabelGenerator = {
                     labelNumber: i + 1,
                     totalLabels: totalLabels,
                     patientName: data.patientName,
+                    isOverlabelMode: data.isOverlabelMode,
                     date,
                     dispensary
                 }));
@@ -500,6 +501,7 @@ const LabelGenerator = {
                     labelNumber: dosageLabels.length + standaloneWarningNumber,
                     totalLabels: totalLabels,
                     patientName: data.patientName,
+                    isOverlabelMode: data.isOverlabelMode,
                     date,
                     dispensary
                 }));
@@ -540,6 +542,7 @@ const LabelGenerator = {
                 labelNumber: 1,
                 totalLabels: 1,
                 patientName: data.patientName,
+                isOverlabelMode: data.isOverlabelMode,
                 date,
                 dispensary
             }));
@@ -557,6 +560,7 @@ const LabelGenerator = {
                 labelNumber: 1,
                 totalLabels: 1,
                 patientName: data.patientName,
+                isOverlabelMode: data.isOverlabelMode,
                 date,
                 dispensary
             }));
@@ -608,7 +612,7 @@ const LabelGenerator = {
                 <div class="label-bottom-section">
                     <!-- Row 4: Patient Name, Date -->
                     <div class="patient-row">
-                        <span class="patient-name">${patientName || ''}</span>
+                        <span class="patient-name">${options.isOverlabelMode ? '<span class="overlabel-placeholder">Patient Name:</span>' : (patientName || '')}</span>
                         <span class="dispensing-date">${date}</span>
                     </div>
                     
@@ -732,7 +736,7 @@ const LabelGenerator = {
             <div class="label-bottom-section">
                 <!-- Row 4: Patient Name, Date -->
                 <div class="patient-row">
-                    <span class="patient-name">${data.patientName || ''}</span>
+                    <span class="patient-name">${data.isOverlabelMode ? '<span class="overlabel-placeholder">Patient Name:</span>' : (data.patientName || '')}</span>
                     <span class="dispensing-date">${date}</span>
                 </div>
                 

@@ -6,6 +6,9 @@
 // Global array to store queued labels
 let labelQueue = [];
 
+// Flag to track if we're in overlabel mode
+let overlabelMode = false;
+
 document.addEventListener('DOMContentLoaded', async () => {
     // Initialize the application
     initApp();
@@ -28,6 +31,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('clear-queue-btn').addEventListener('click', clearQueue);
     document.getElementById('label-form').addEventListener('reset', clearPreview);
     document.getElementById('new-patient-btn').addEventListener('click', clearPatientDetails);
+    document.getElementById('overlabels-btn').addEventListener('click', toggleOverlabelMode);
     
     // Initialize shorthand functionality when page loads
     LabelGenerator.initShorthand();
@@ -472,6 +476,11 @@ function clearMedicationDetails() {
  * Clear patient details when New Patient button is clicked
  */
 function clearPatientDetails() {
+    // If in overlabel mode, disable it first
+    if (overlabelMode) {
+        toggleOverlabelMode();
+    }
+    
     // Clear patient fields
     document.getElementById('patient-name').value = '';
     document.getElementById('patient-dob').value = '';
@@ -486,6 +495,69 @@ function clearPatientDetails() {
     
     // Focus on patient name field
     document.getElementById('patient-name').focus();
+}
+
+/**
+ * Toggle between normal and overlabel mode
+ */
+function toggleOverlabelMode() {
+    // Toggle the mode
+    overlabelMode = !overlabelMode;
+    
+    // Get references to patient detail fields
+    const patientFields = [
+        document.getElementById('patient-name'),
+        document.getElementById('patient-dob'),
+        document.getElementById('patient-nhs'),
+        document.getElementById('patient-address')
+    ];
+    
+    // Toggle button style
+    const overlabelsBtn = document.getElementById('overlabels-btn');
+    
+    if (overlabelMode) {
+        // Enable overlabel mode
+        overlabelsBtn.classList.add('active');
+        
+        // Grey out and disable patient fields
+        patientFields.forEach(field => {
+            field.disabled = true;
+            field.classList.add('disabled-field');
+            field.value = ''; // Clear any existing values
+        });
+        
+        // Show a message to indicate overlabel mode is active
+        const patientSection = document.querySelector('.form-group');
+        const existingMessage = document.getElementById('overlabel-message');
+        
+        if (!existingMessage) {
+            const message = document.createElement('div');
+            message.id = 'overlabel-message';
+            message.className = 'info-message';
+            message.textContent = 'Overlabel mode active: Patient information will be replaced with placeholder text for handwritten details';
+            patientSection.insertBefore(message, patientSection.firstChild.nextSibling);
+        }
+    } else {
+        // Disable overlabel mode
+        overlabelsBtn.classList.remove('active');
+        
+        // Re-enable patient fields
+        patientFields.forEach(field => {
+            field.disabled = false;
+            field.classList.remove('disabled-field');
+        });
+        
+        // Remove the overlabel message
+        const message = document.getElementById('overlabel-message');
+        if (message) {
+            message.remove();
+        }
+    }
+    
+    // Update preview to reflect changes
+    if (document.getElementById('preview-content').innerHTML !== '<div class="preview-placeholder">Label preview will appear here</div>') {
+        generatePreview();
+    }
 }
 
 /**
@@ -541,6 +613,8 @@ function getFormData() {
     
     // Add standard warning to the beginning of additional information if checked
     return {
+        // Overlabel mode flag
+        isOverlabelMode: overlabelMode,
         // Patient details
         patientName: document.getElementById('patient-name').value.trim(),
         patientDOB: document.getElementById('patient-dob').value,
