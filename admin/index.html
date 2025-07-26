@@ -14,19 +14,25 @@
         margin-bottom: 20px;
       }
       .admin-tab {
-        background: none;
-        border: none;
+        background: #f0f0f0;
+        border: 1px solid #ccc;
+        border-bottom: none;
+        border-radius: 5px 5px 0 0;
         padding: 10px 20px;
         cursor: pointer;
         font-size: 1rem;
-        color: #555;
-        border-bottom: 2px solid transparent;
+        color: #333;
         transition: all 0.3s;
         margin-right: 10px;
+        font-weight: 500;
+      }
+      .admin-tab:hover {
+        background: #e0e0e0;
       }
       .admin-tab.active {
-        color: #3498db;
-        border-color: #3498db;
+        color: #fff;
+        background: #0063C9;
+        border-color: #0063C9;
         font-weight: bold;
       }
     </style>
@@ -62,14 +68,14 @@
       </div>
     </header>
 
-    <main class="container">
-      <div class="admin-content">
+    <main class="container" style="max-width: 1200px; margin: 0 auto; padding: 20px; background-color: white; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); border-radius: 4px; display: flex; flex-direction: column; gap: 1.5rem;">
+      <div class="admin-content" style="width: 100%;">
           <!-- Tabs Navigation -->
           <div class="admin-tabs">
             <button class="admin-tab active" data-target="users-section">User Management</button>
             <button class="admin-tab" data-target="wards-section">Location Management</button>
           </div>
-        <section id="users-section" class="admin-section">
+        <section id="users-section" class="admin-section" style="background-color: white; padding: 1.5rem; border-radius: 4px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); margin-bottom: 2rem;">
           <div class="section-header">
             <h2>User Management</h2>
             <button id="add-user-btn" class="btn btn-primary">
@@ -119,7 +125,7 @@
           </div>
         </section>
         
-        <section id="wards-section" class="admin-section">
+        <section id="wards-section" class="admin-section" style="background-color: white; padding: 1.5rem; border-radius: 4px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); margin-bottom: 2rem;">
           <div class="section-header">
             <h2>Location Management</h2>
             <div class="section-actions">

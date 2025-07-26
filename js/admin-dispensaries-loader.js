@@ -44,8 +44,8 @@ function renderDispensaryRow(dispensary) {
     <td>${dispensary.description || ''}</td>
     <td>${dispensary.hospital_name || 'N/A'}</td>
     <td>
-      <button class="action-btn edit-dispensary-btn" data-id="${dispensary.id}">Edit</button>
-      <button class="action-btn delete-dispensary-btn" data-id="${dispensary.id}">Delete</button>
+      <button class="btn btn-sm btn-secondary edit-dispensary-btn" data-id="${dispensary.id}">Edit</button>
+      <button class="btn btn-sm btn-danger delete-dispensary-btn" data-id="${dispensary.id}">Delete</button>
     </td>
   `;
   return row;
