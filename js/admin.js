@@ -209,9 +209,16 @@ document.addEventListener('DOMContentLoaded', () => {
       const row = document.createElement('tr');
       
       // Format roles as badges
-      const rolesBadges = user.roles.map(role => 
-        `<span class="user-role role-${role}">${role}</span>`
-      ).join(' ');
+      const rolesBadges = user.roles.map(role => {
+        let displayRole = role.charAt(0).toUpperCase() + role.slice(1);
+        if (role === 'super-admin') {
+          displayRole = 'Super-Admin';
+        }
+        if (role === 'user-admin') {
+          displayRole = 'User-Admin';
+        }
+        return `<span class="user-role role-${role}">${displayRole}</span>`;
+      }).join(' ');
       
       // Format date
       const lastLogin = user.last_login ? new Date(user.last_login).toLocaleString() : 'Never';

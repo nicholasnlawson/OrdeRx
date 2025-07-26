@@ -148,9 +148,8 @@
 }
 
 .users-table .role-super-admin {
-  background-color: #f1c40f;
-  color: #222;
-  font-weight: 600;
+  background-color: #ffd700;
+  color: #fff;
 }
 
 .users-table .role-pharmacy {
