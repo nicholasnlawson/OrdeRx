@@ -108,16 +108,28 @@ document.addEventListener('DOMContentLoaded', () => {
         <td>${ward.name}</td>
         <td>${ward.description || '-'}</td>
         <td>${ward.hospital_name || 'No Hospital'}</td>
-        <td>${ward.is_active ? '<span class="status-active">Active</span>' : '<span class="status-inactive">Inactive</span>'}</td>
+        <td><span class="ward-status ${ward.is_active ? 'status-active' : 'status-inactive'}">${ward.is_active ? 'Active' : 'Inactive'}</span></td>
         <td class="actions">
-          <button class="btn btn-sm btn-edit" data-id="${ward.id}">Edit</button>
-          <button class="btn btn-sm btn-danger" data-id="${ward.id}">Delete</button>
+          <button class="action-btn edit-btn" data-id="${ward.id}">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+            </svg>
+          </button>
+          <button class="action-btn delete-btn" data-id="${ward.id}">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+              <line x1="10" y1="11" x2="10" y2="17"></line>
+              <line x1="14" y1="11" x2="14" y2="17"></line>
+            </svg>
+          </button>
         </td>
       `;
       
       // Add event listeners to buttons
-      const editBtn = row.querySelector('.btn-edit');
-      const deleteBtn = row.querySelector('.btn-danger');
+      const editBtn = row.querySelector('.edit-btn');
+      const deleteBtn = row.querySelector('.delete-btn');
       
       editBtn.addEventListener('click', () => openEditWardModal(ward.id));
       deleteBtn.addEventListener('click', () => openDeleteWardModal(ward.id));
@@ -536,8 +548,20 @@ document.addEventListener('DOMContentLoaded', () => {
         <td>${hospital.name}</td>
         <td>${hospital.address || 'No address'}</td>
         <td class="actions">
-          <button class="btn btn-sm btn-secondary edit-hospital-btn" data-id="${hospital.id}">Edit</button>
-          <button class="btn btn-sm btn-danger delete-hospital-btn" data-id="${hospital.id}">Delete</button>
+          <button class="action-btn edit-btn edit-hospital-btn" data-id="${hospital.id}">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+            </svg>
+          </button>
+          <button class="action-btn delete-btn delete-hospital-btn" data-id="${hospital.id}">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+              <line x1="10" y1="11" x2="10" y2="17"></line>
+              <line x1="14" y1="11" x2="14" y2="17"></line>
+            </svg>
+          </button>
         </td>
       `;
       
