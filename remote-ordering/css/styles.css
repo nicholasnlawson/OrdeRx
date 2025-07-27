@@ -57,47 +57,6 @@ main {
 }
 
 
-/* Order Type Selector */
-.order-type-selector-container {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  margin-bottom: 1.5rem;
-}
-
-.order-type-selector {
-  display: flex;
-  justify-content: center;
-  gap: 1rem;
-  width: 100%;
-  max-width: 650px;
-}
-
-.order-type-btn {
-  background-color: var(--gray-light);
-  border: 2px solid var(--primary-color);
-  padding: 1rem 2rem;
-  font-size: 1.1rem;
-  font-weight: bold;
-  cursor: pointer;
-  transition: var(--transition);
-  border-radius: var(--border-radius);
-  flex: 1;
-  max-width: 300px;
-  text-align: center;
-}
-
-.order-type-btn:hover {
-  background-color: var(--secondary-color);
-  color: white;
-}
-
-.order-type-btn.active {
-  background-color: var(--primary-color);
-  color: white;
-  font-weight: bold;
-}
-
 /* Order Forms */
 .order-form {
   background-color: white;

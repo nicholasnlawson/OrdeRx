@@ -33,6 +33,38 @@ document.addEventListener('DOMContentLoaded', () => {
   loadUsers();
   loadDispensaries();
 
+  // Tab navigation
+  const tabs = document.querySelectorAll('.tab-btn');
+  const sections = document.querySelectorAll('.admin-section');
+
+  // Hide all sections initially, then show the active one
+  sections.forEach(section => {
+    section.style.display = 'none';
+  });
+
+  const activeTab = document.querySelector('.tab-btn.active');
+  if (activeTab) {
+    const activeSection = document.getElementById(activeTab.dataset.target);
+    if (activeSection) {
+      activeSection.style.display = 'block';
+    }
+  }
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      // Deactivate all tabs and sections
+      tabs.forEach(t => t.classList.remove('active'));
+      sections.forEach(s => s.style.display = 'none');
+
+      // Activate clicked tab and corresponding section
+      tab.classList.add('active');
+      const targetSection = document.getElementById(tab.dataset.target);
+      if (targetSection) {
+        targetSection.style.display = 'block';
+      }
+    });
+  });
+
   // Event Listeners
   addUserBtn.addEventListener('click', () => {
     openUserModal();
@@ -255,6 +287,8 @@ document.addEventListener('DOMContentLoaded', () => {
       
       userTableBody.appendChild(row);
     });
+    
+
     
     // Add event listeners to edit and delete buttons
     document.querySelectorAll('.edit-btn').forEach(btn => {
